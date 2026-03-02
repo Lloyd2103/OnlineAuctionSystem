@@ -7,6 +7,7 @@ import sequelize, { connectToDatabase } from './libs/db.js';
 import User from './models/User.js';
 import authRoute from './routes/authRoute.js';
 import userRoute from './routes/userRoute.js';
+import itemRoute from './routes/itemRoute.js';
 
 import { protectedRoute } from './middlewares/authMiddleware.js';
 
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoute);
 // Private routes
 app.use(protectedRoute);
 app.use('/api/user', userRoute);
+app.use('/api/item', itemRoute);
 
 
 connectToDatabase().then(async () => {

@@ -1,24 +1,50 @@
+import userService from '../services/userService.js';
+
 export const getUserProfile = async (req, res) => {
     try {
         const user = req.user;
-        return res.status(200).json({user});
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        return res.status(200).json({ user });
     } catch (error) {
-        console.error('Error in getUserProfile:', error);
-        return res.status(500).json({ message: 'Internal Server Error' });
+        return res.status(500).json({ message: error.message });
     }
 };
 
 export const updateUserProfile = async (req, res) => {
     try {
-        const user = req.user;
-        const { name, email } = req.body;
-        if (name) user.name = name;
-        if (email) user.email = email;
-        await user.save();
-        return res.status(200).json({ user });
+        const updatedUser = await userService.updateProfile(req.user, req.body);
+        return res.status(200).json({ 
+            message: 'User profile updated successfully', 
+            user: updatedUser 
+        });
     } catch (error) {
-        console.error('Error in updateUserProfile:', error);
-        return res.status(500).json({ message: 'Internal Server Error' });
+        return res.status(500).json({ message: error.message });
     }
 };
 
+export const getWalletBalance = async (req, res) => {
+    try {
+        const balance = await userService.getBalance(req.user);
+        return res.status(200).json({ walletBalance: balance });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const submitUserRating = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rating } = req.body;
+        
+        const updatedUser = await userService.updateUserRating(id, rating);
+        
+        return res.status(200).json({ 
+            message: 'Rating submitted successfully', 
+            rating: updatedUser.rating 
+        });
+    } catch (error) {
+        const status = error.message === 'User not found' ? 404 : 500;
+        return res.status(status).json({ message: error.message });
+    }
+};

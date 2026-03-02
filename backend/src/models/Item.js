@@ -2,6 +2,15 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../libs/db.js';
 
 const Item = sequelize.define('Item', {
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        },
+        onDelete: 'CASCADE'
+    },
     itemName: {
         type: DataTypes.STRING,
         allowNull: false

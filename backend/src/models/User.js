@@ -5,7 +5,7 @@ import sequelize from '../libs/db.js';
 const User = sequelize.define('User', {
 
     userName: {
-        type: DataTypes.STRING, // Tương đương 'text'
+        type: DataTypes.STRING,
         allowNull: false,
     },
     userEmail: {

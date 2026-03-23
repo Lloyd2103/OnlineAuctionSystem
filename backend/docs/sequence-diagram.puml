@@ -1,0 +1,73 @@
+@startuml
+!theme plain
+title "Create Auction - Sequence Diagram"
+
+' Định nghĩa các thành phần
+actor User
+participant "Frontend" as FE
+participant "Routes" as Routes
+participant "AuthMiddleware" as Auth
+participant "AuctionController" as Controller
+participant "IAuctionFacade" as FacadeIF
+participant "AuctionFacade" as Facade
+participant "AuctionService" as Service
+participant "AuctionRepository" as Repo
+participant "AuctionStateFactory" as Domain
+database "Database" as DB
+
+User -> FE: Click "Create Auction"
+FE -> Routes: POST /api/auctions\n+ body: {item, title, price...}
+Routes -> Auth: Verify JWT Token
+activate Auth
+Auth -> Auth: Validate token
+
+alt Token valid
+    Auth -> Controller: Forward request
+    deactivate Auth
+    activate Controller
+else Token invalid
+    Auth -> FE: 401 Unauthorized
+    deactivate Auth
+end
+
+Controller -> FacadeIF: createAuction(ownerId, payload)
+activate FacadeIF
+FacadeIF -> Facade: createAuction(ownerId, payload)
+activate Facade
+
+note right of Facade
+  - Validate input
+  - Check business rules
+  - Coordinate multiple operations
+end note
+
+Facade -> Domain: AuctionStateFactory.fromAuction(auction)
+activate Domain
+note right of Domain
+  Determine initial state
+  (PENDING, UPCOMING)
+end note
+Domain --> Facade: AuctionState
+deactivate Domain
+
+Facade -> Service: createAuction(userId, data)
+activate Service
+Service -> Repo: create(auctionData)
+activate Repo
+Repo -> DB: INSERT INTO auctions
+activate DB
+DB --> Repo: Created Auction
+deactivate DB
+Repo --> Service: Auction object
+deactivate Repo
+Service --> Facade: Auction
+deactivate Service
+
+Facade --> Controller: Auction
+deactivate Facade
+deactivate FacadeIF
+
+Controller -> FE: 201 Created\n+ {auction}
+deactivate Controller
+FE -> User: Show success message
+@enduml

@@ -1,19 +1,22 @@
-import Transaction from '../models/Transaction.js';
-import User from '../models/User.js';
 import sequelize from '../libs/db.js';
+import transactionRepository from '../repositories/TransactionRepository.js';
+import userRepository from '../repositories/UserRepository.js';
 
 class TransactionService {
     // Nạp tiền
     async deposit(userInstance, amount) {
-        userInstance.walletBalance += amount;
-        await userInstance.save();
+        userInstance.walletBalance = parseFloat(userInstance.walletBalance) + parseFloat(amount);
+        await userRepository.save(userInstance);
         
         // Tạo bản ghi giao dịch (tùy chọn nhưng nên có)
-        await Transaction.create({
+        await transactionRepository.create({
             userId: userInstance.id,
             amount,
             type: 'DEPOSIT',
-            status: 'SUCCESS'
+            transactionStatus: 'COMPLETED',
+            paymentMethod: 'WALLET',
+            paymentStatus: 'COMPLETED',
+            walletBalance: userInstance.walletBalance
         });
         
         return userInstance.walletBalance;
@@ -21,17 +24,20 @@ class TransactionService {
 
     // Rút tiền
     async withdraw(userInstance, amount) {
-        if (userInstance.walletBalance < amount) {
+        if (parseFloat(userInstance.walletBalance) < parseFloat(amount)) {
             throw new Error('Insufficient wallet balance');
         }
-        userInstance.walletBalance -= amount;
-        await userInstance.save();
+        userInstance.walletBalance = parseFloat(userInstance.walletBalance) - parseFloat(amount);
+        await userRepository.save(userInstance);
         
-        await Transaction.create({
+        await transactionRepository.create({
             userId: userInstance.id,
             amount,
             type: 'WITHDRAWAL',
-            status: 'SUCCESS'
+            transactionStatus: 'COMPLETED',
+            paymentMethod: 'WALLET',
+            paymentStatus: 'COMPLETED',
+            walletBalance: userInstance.walletBalance
         });
         
         return userInstance.walletBalance;
@@ -39,30 +45,43 @@ class TransactionService {
 
     // Chuyển tiền (Sử dụng Database Transaction để đảm bảo an toàn)
     async transfer(senderInstance, recipientUsername, amount) {
-        if (senderInstance.walletBalance < amount) {
+        if (parseFloat(senderInstance.walletBalance) < parseFloat(amount)) {
             throw new Error('Insufficient wallet balance');
         }
 
         const t = await sequelize.transaction();
         try {
-            const recipient = await User.findOne({ 
-                where: { username: recipientUsername },
-                transaction: t 
-            });
+            const recipient = await userRepository.findByUsername(recipientUsername, { transaction: t });
 
             if (!recipient) throw new Error('Recipient user not found');
 
             // Trừ tiền người gửi, cộng tiền người nhận
-            senderInstance.walletBalance -= amount;
-            recipient.walletBalance += amount;
+            senderInstance.walletBalance = parseFloat(senderInstance.walletBalance) - parseFloat(amount);
+            recipient.walletBalance = parseFloat(recipient.walletBalance) + parseFloat(amount);
 
-            await senderInstance.save({ transaction: t });
-            await recipient.save({ transaction: t });
+            await userRepository.save(senderInstance, { transaction: t });
+            await userRepository.save(recipient, { transaction: t });
 
             // Lưu lịch sử giao dịch cho cả 2
-            await Transaction.bulkCreate([
-                { userId: senderInstance.id, amount: -amount, type: 'TRANSFER_OUT', status: 'SUCCESS' },
-                { userId: recipient.id, amount: amount, type: 'TRANSFER_IN', status: 'SUCCESS' }
+            await transactionRepository.bulkCreate([
+                { 
+                    userId: senderInstance.id, 
+                    amount: -amount, 
+                    type: 'TRANSFER_OUT', 
+                    transactionStatus: 'COMPLETED',
+                    paymentMethod: 'WALLET',
+                    paymentStatus: 'COMPLETED',
+                    walletBalance: senderInstance.walletBalance
+                },
+                { 
+                    userId: recipient.id, 
+                    amount: amount, 
+                    type: 'TRANSFER_IN', 
+                    transactionStatus: 'COMPLETED',
+                    paymentMethod: 'WALLET',
+                    paymentStatus: 'COMPLETED',
+                    walletBalance: recipient.walletBalance
+                }
             ], { transaction: t });
 
             await t.commit();
@@ -75,14 +94,11 @@ class TransactionService {
 
     // Các hàm xử lý bản ghi giao dịch thuần túy
     async getHistory(userId) {
-        return await Transaction.findAll({ 
-            where: { userId },
-            order: [['createdAt', 'DESC']]
-        });
+        return await transactionRepository.findAllByUserId(userId);
     }
 
     async findTransaction(id, userId) {
-        const transaction = await Transaction.findOne({ where: { id, userId } });
+        const transaction = await transactionRepository.findOneByIdAndUserId(id, userId);
         if (!transaction) throw new Error('Transaction not found');
         return transaction;
     }

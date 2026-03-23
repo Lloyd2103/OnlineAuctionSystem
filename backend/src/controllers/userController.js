@@ -13,12 +13,19 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try {
-        const updatedUser = await userService.updateProfile(req.user, req.body);
-        return res.status(200).json({ 
-            message: 'User profile updated successfully', 
-            user: updatedUser 
-        });
+        const updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.userImage = req.file.path;
+        } else {
+            delete updateData.userImage;
+        }
+
+        await userService.updateProfile(req.user, updateData);
+
+        return res.status(200).json({ message: 'User profile updated successfully'});
     } catch (error) {
+        console.error("Lỗi Controller:", error.message);
         return res.status(500).json({ message: error.message });
     }
 };

@@ -1,0 +1,105 @@
+@startuml
+!theme plain
+skinparam rectangleRoundRadius 10
+skinparam rectangleBackgroundColor #F0F8FF
+skinparam arrowColor #333333
+
+title "Online Auction System - Improved Data Flow Diagram"
+
+actor User as "User" #FFEEEE
+
+rectangle "CLIENT" #FFDDDD {
+    [Frontend App]
+}
+
+rectangle "BACKEND" #DDFFDD {
+    rectangle "ROUTING" #E8F5E9 {
+        [Routes]
+    }
+    
+    rectangle "MIDDLEWARE" #FFF3E0 {
+        [authMiddleware]
+    }
+    
+    rectangle "CONTROLLER" #E3F2FD {
+        [AuctionController]
+        [BidController]
+        [UserController]
+    }
+    
+    rectangle "FACADE" #F3E5F5 {
+        [AuctionFacade]
+        [WalletFacade]
+    }
+    
+    rectangle "SERVICE" #E0F7FA {
+        [AuctionService]
+        [BidService]
+        [UserService]
+    }
+    
+    rectangle "DOMAIN" #FFF8E1 {
+        [AuctionState]
+        [BidValidation]
+    }
+    
+    rectangle "REPOSITORY" #FCE4EC {
+        [AuctionRepository]
+        [BidRepository]
+        [UserRepository]
+    }
+    
+    rectangle "MODEL" #F1F8E9 {
+        [User Model]
+        [Auction Model]
+        [Bid Model]
+    }
+}
+
+database "DATABASE" as DB #FFEBEE {
+    [MySQL]
+}
+
+' Ghi chú giải thích cho Facade
+note right of [AuctionFacade]
+  **AuctionFacade**
+  Đơn giản hóa các tác vụ phức tạp
+  như "tạo phiên đấu giá mới" hoặc
+  "đặt giá thầu" cho Controller.
+end note
+
+' Flow relationships
+User --> [Frontend App]
+[Frontend App] -left-> [Routes] : HTTP Request
+
+[Routes] --> [authMiddleware] : Validate Token
+[authMiddleware] --> [AuctionController] : Request + User
+
+[AuctionController] --> [AuctionFacade] : business operation
+[BidController] --> [AuctionFacade] : placeBid()
+[UserController] --> [WalletFacade] : transaction
+
+' Facade gọi Service
+[AuctionFacade] --> [AuctionService] : complex logic
+[AuctionFacade] --> [BidService] : getBids / placeBid
+[WalletFacade] --> [UserService] : user operations
+
+' Service sử dụng Domain logic và Repository
+[AuctionService] --> [AuctionState] : state check
+[AuctionService] --> [AuctionRepository] : CRUD
+
+[BidService] --> [BidValidation] : validate bid
+[BidService] --> [BidRepository] : CRUD
+
+[UserService] --> [UserRepository] : CRUD  '
+
+' Repository ánh xạ với Model
+[AuctionRepository] --> [Auction Model] : maps to / returns
+[BidRepository] --> [Bid Model] : maps to / returns
+[UserRepository] --> [User Model] : maps to / returns
+
+' Model tương tác với DB
+[User Model] --> DB : SQL Query
+[Auction Model] --> DB : SQL Query
+[Bid Model] --> DB : SQL Query
+@enduml

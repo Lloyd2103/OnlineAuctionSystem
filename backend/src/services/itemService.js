@@ -1,11 +1,11 @@
-import Item from '../models/Item.js';
+import itemRepository from '../repositories/ItemRepository.js';
 
 class ItemService {
     
     async createItem(userId, itemData) {
         const { itemName, itemDescription, itemAddress, itemStatus, itemImage, price, category, attributes } = itemData;
         
-        return await Item.create({
+        return await itemRepository.create({
             userId,
             itemName,
             itemDescription,
@@ -19,11 +19,11 @@ class ItemService {
     }
 
     async getAllUserItems(userId) {
-        return await Item.findAll({ where: { userId } });
+        return await itemRepository.findAllByUserId(userId);
     }
 
     async findItemForUser(id, userId) {
-        const item = await Item.findOne({ where: { id, userId } });
+        const item = await itemRepository.findOneByIdAndUserId(id, userId);
         if (!item) throw new Error('Item not found');
         return item;
     }
@@ -31,7 +31,7 @@ class ItemService {
     async updateItem(id, userId, updateData) {
         const item = await this.findItemForUser(id, userId);
         const { itemName, itemDescription, itemAddress, itemStatus, itemImage, price, category, attributes } = updateData;
-        
+
         if (itemName) item.itemName = itemName;
         if (itemDescription) item.itemDescription = itemDescription;
         if (itemAddress) item.itemAddress = itemAddress;
@@ -41,12 +41,12 @@ class ItemService {
         if (category) item.category = category;
         if (attributes) item.attributes = attributes;
 
-        return await item.save();
+        return await itemRepository.save(item);
     }
 
     async deleteItem(id, userId) {
         const item = await this.findItemForUser(id, userId);
-        return await item.destroy();
+        return await itemRepository.destroy(item);
     }
 }
 

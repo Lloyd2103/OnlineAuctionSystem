@@ -18,6 +18,14 @@ const Auction = sequelize.define('Auction', {
             key: 'id'
         }
     },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    description: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     startTime: {
         type: DataTypes.DATE,
         allowNull: false
@@ -25,10 +33,6 @@ const Auction = sequelize.define('Auction', {
     endTime: {
         type: DataTypes.DATE,
         allowNull: false
-    },
-    extendedUntil: {
-        type: DataTypes.DATE,
-        allowNull: true
     },
     auctionStatus: {
         type: DataTypes.STRING,
@@ -52,7 +56,7 @@ const Auction = sequelize.define('Auction', {
         allowNull: false
     }
 }, {
-    tableName: 'users',
+    tableName: 'auctions',
     timestamps: true 
 });
 

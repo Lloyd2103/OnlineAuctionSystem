@@ -18,10 +18,9 @@ const Bid = sequelize.define('Bid', {
             key: 'id'
         }
     },
-    bidTime: {
-        type: DataTypes.DATE,
+    bidAmount: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: DataTypes.NOW
     },
     isWinningBid: {
         type: DataTypes.BOOLEAN,

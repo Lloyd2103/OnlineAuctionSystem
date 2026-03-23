@@ -19,7 +19,7 @@ const Transaction = sequelize.define('Transaction', {
         }
     },
     type: {
-        type: enum('DEPOSIT', 'WITHDRAW','AUCTION_PAYMENT','REFUND'),
+        type: DataTypes.ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'AUCTION_PAYMENT', 'REFUND'),
         allowNull: false
     },
     amount: {
@@ -27,18 +27,19 @@ const Transaction = sequelize.define('Transaction', {
         allowNull: false
     },
     transactionStatus: {
-        type: enum('PENDING', 'COMPLETED', 'FAILED'),
+        type: DataTypes.ENUM('PENDING', 'COMPLETED', 'FAILED'),
         allowNull: false,
-        defaultValue: 'PENDING'
+        defaultValue: 'COMPLETED'
     },
     paymentMethod: {
-        type: enum('CREDIT_CARD', 'PAYPAL', 'BANK_TRANSFER'),
-        allowNull: false
+        type: DataTypes.ENUM('WALLET', 'CREDIT_CARD', 'PAYPAL', 'BANK_TRANSFER'),
+        allowNull: false,
+        defaultValue: 'WALLET'
     },
     paymentStatus: {
-        type: enum('PENDING', 'COMPLETED', 'FAILED'),
+        type: DataTypes.ENUM('PENDING', 'COMPLETED', 'FAILED'),
         allowNull: false,
-        defaultValue: 'PENDING'
+        defaultValue: 'COMPLETED'
     },
     walletBalance: {
         type: DataTypes.DECIMAL(10, 2),

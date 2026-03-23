@@ -22,7 +22,16 @@ export const protectedRoute = async (req, res, next) => {
         next();
 
     } catch (error) {
-        // console.error('Error in auth middleware:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        // Kiểm tra nếu là lỗi từ JWT
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token đã hết hạn' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Token không hợp lệ' });
+        }
+        
+        // Các lỗi hệ thống khác (như mất kết nối Database) mới dùng 500
+        console.error('Auth Middleware Error:', error);
+        res.status(500).json({ message: 'Lỗi hệ thống' });
     }
 };

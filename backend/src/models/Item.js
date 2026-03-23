@@ -16,7 +16,7 @@ const Item = sequelize.define('Item', {
         allowNull: false
     },
     itemDescription: {
-        type: DataTypes.TEXT,
+        type: DataTypes.STRING,
         allowNull: false
     },
     itemAddress: {

@@ -1,14 +1,14 @@
-import bidService from '../services/bidService.js';
+import auctionManager from '../managers/auctionManager.js';
 
 export const createBid = async (req, res) => {
     try {
-        const bid = await bidService.placeBid(req.user.id, req.body);
+        const bid = await auctionManager.placeBid(req.user.id, req.body);
         return res.status(201).json({ 
             message: 'Đặt giá thầu thành công', 
             bid 
         });
     } catch (error) {
-        // Phân loại lỗi để trả về status code phù hợp
+
         const badRequestErrors = [
             'Auction not found', 
             'Số dư ví không đủ', 
@@ -22,7 +22,7 @@ export const createBid = async (req, res) => {
 
 export const getBidsByAuctionId = async (req, res) => {
     try {
-        const stats = await bidService.getAuctionStats(req.params.auctionId);
+        const stats = await auctionManager.getAuctionStats(req.params.auctionId);
         return res.status(200).json(stats);
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -31,7 +31,7 @@ export const getBidsByAuctionId = async (req, res) => {
 
 export const getUserBidHistory = async (req, res) => {
     try {
-        const history = await bidService.getUserHistory(req.user.id);
+        const history = await auctionManager.getBidHistory(req.user.id);
         return res.status(200).json({ bidHistory: history });
     } catch (error) {
         return res.status(500).json({ message: error.message });

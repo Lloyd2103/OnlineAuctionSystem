@@ -2,13 +2,17 @@ import itemService from '../services/itemService.js';
 
 export const createItem = async (req, res) => {
     try {
+        const updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.itemImage = req.file.path;
+        } else {
+            delete updateData.itemImage;
+        }
+        console.log(updateData);
+        const newItem = await itemService.createItem(req.user.id, updateData);
         
-        const newItem = await itemService.createItem(req.user.id, req.body);
-        
-        return res.status(201).json({ 
-            message: 'Item created successfully', 
-            item: newItem 
-        });
+        return res.status(201).json({ message: 'Item created successfully', item: newItem });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -35,7 +39,16 @@ export const getItemById = async (req, res) => {
 
 export const updateItem = async (req, res) => {
     try {
-        await itemService.updateItem(req.params.id, req.user.id, req.body);
+        const updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.itemImage = req.file.path;
+        } else {
+            delete updateData.itemImage;
+        }
+
+        await itemService.updateItem(req.params.id, req.user.id, updateData);
+
         return res.status(200).json({ message: 'Item updated successfully' });
     } catch (error) {
         return res.status(500).json({ message: error.message });

@@ -2,11 +2,31 @@
 import { PackageOpen } from 'lucide-react'
 import { AuctionCard } from '../module/AuctionCard'
 
-import { useAuctionStore } from '@/stores/auctionStore'
+import { useAuctionStore, useFilterStore } from '@/features/auction/stores/auctionStore'
 
 export function AuctionGrid() {
   const { auctions } = useAuctionStore()
+  const { search, category, status, priceRange } = useFilterStore()
 
+  const filteredAuctions = auctions.filter((auction) => {
+    // Search filter
+    const matchesSearch = search
+      ? (auction.title?.toLowerCase().includes(search.toLowerCase()) ||
+        auction.item?.itemName?.toLowerCase().includes(search.toLowerCase()))
+      : true;
+
+    // Category filter
+    const matchesCategory = category === 'All' || auction.item?.category === category;
+
+    // Status filter
+    const matchesStatus = status === 'ALL' || auction.auctionStatus === status;
+
+    // Price filter
+    const price = auction.currentPrice || auction.startingPrice || 0;
+    const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+
+    return matchesSearch && matchesCategory && matchesStatus && matchesPrice;
+  })
 
   return (
     <section className="py-10 sm:py-14">
@@ -20,14 +40,14 @@ export function AuctionGrid() {
               All Auctions
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {auctions.length} {auctions.length === 1 ? 'item' : 'items'} found
+              {filteredAuctions.length} {filteredAuctions.length === 1 ? 'item' : 'items'} found
             </p>
           </div>
         </div>
 
-        {auctions.length > 0 ? (
+        {filteredAuctions.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {auctions.map((auction) => (
+            {filteredAuctions.map((auction) => (
               <AuctionCard key={auction.id} auction={auction} />
             ))}
           </div>

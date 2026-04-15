@@ -1,7 +1,7 @@
 import { Flame, Sparkles } from 'lucide-react'
 import { AuctionCard } from '../module/AuctionCard'
-import { useAuctionStore } from '@/stores/auctionStore'
-import type { Auction } from '@/types/auction';
+import { useAuctionStore } from '@/features/auction/stores/auctionStore'
+import type { Auction } from '@/features/auction/types/auction';
 
 
 // module/TrendingSections.tsx
@@ -30,10 +30,10 @@ export function TrendingSections() {
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {endingSoonAuctions.map((auction: Auction) => (
-                <AuctionCard 
-                    key={auction.id} 
-                    auction={auction} 
-                    urgent={true} // Truyền prop để Card đổi màu đỏ cảnh báo
+                <AuctionCard
+                  key={auction.id}
+                  auction={auction}
+                  urgent={true} // Truyền prop để Card đổi màu đỏ cảnh báo
                 />
               ))}
             </div>

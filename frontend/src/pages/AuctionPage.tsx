@@ -1,5 +1,5 @@
-import { AuctionManagement } from "@/components/form/AuctionManagementForm";
-import Header from "@/components/layout/topbar";
+import { AuctionManagement } from "@/features/auction";
+import Header from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 const AuctionPage = () => {

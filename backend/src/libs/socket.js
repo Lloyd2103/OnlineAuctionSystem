@@ -1,35 +1,29 @@
 import { Server } from 'socket.io';
+import { socketAuthMiddleware } from '../middlewares/socketMiddleware.js';
+import { registerAuctionHandlers } from '../domains/auction/sockets/handler.js';
 
 let io;
 
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: "*", // Trong thực tế hãy thay bằng domain frontend của bạn
+            origin: "*",
             methods: ["GET", "POST"]
         }
     });
 
-    io.on('connection', (socket) => {
-        console.log('User connected:', socket.id);
+    io.use(socketAuthMiddleware);
 
-        // User join vào room riêng của từng phiên đấu giá
-        socket.on('join_auction', (auctionId) => {
-            socket.join(`auction_${auctionId}`);
-            console.log(`User ${socket.id} joined auction room: ${auctionId}`);
-        });
+    io.on('connection', (socket) => {
+        console.log(`User: ${socket.user.userId} authenticated and connected`);
+
+        socket.join(`User: ${socket.user.userId}`);
+        registerAuctionHandlers(io, socket);
 
         socket.on('disconnect', () => {
-            console.log('User disconnected');
+            console.log('User disconnected:', socket.id);
         });
     });
 
-    return io;
-};
-
-export const getIO = () => {
-    if (!io) {
-        throw new Error('Socket.io chưa được khởi tạo!');
-    }
     return io;
 };

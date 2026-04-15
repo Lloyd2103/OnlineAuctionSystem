@@ -1,5 +1,5 @@
-import { ItemManagement } from "@/components/form/ItemManagementForm";
-import Header from "@/components/layout/topbar";
+import { ItemManagement } from "@/features/item";
+import Header from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 const ItemPage = () => {

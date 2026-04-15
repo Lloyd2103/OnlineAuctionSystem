@@ -1,10 +1,14 @@
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from "@/features/auth/stores/authStore";
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: import.meta.env.MODE === "development" ? "http://localhost:5000/api" : "/api",
+    baseURL: import.meta.env.DEV
+        ? import.meta.env.VITE_API_URL
+        : "/api",
     withCredentials: true,
 });
+
+// ${window.location.hostname}
 
 // Interceptor cho Request
 api.interceptors.request.use((config) => {
@@ -27,7 +31,7 @@ api.interceptors.response.use(
 
         originalRequest._retry = true;
 
-        try {            
+        try {
             const res = await axios.post(
                 `${api.defaults.baseURL}/auth/refresh`,
                 {},
@@ -37,7 +41,6 @@ api.interceptors.response.use(
             const newAccessToken = res.data.accessToken;
             useAuthStore.getState().setAccessToken(newAccessToken);
 
-            // Gán token mới và chạy lại request cũ
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return api(originalRequest);
         } catch (refreshErr) {

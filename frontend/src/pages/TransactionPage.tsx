@@ -1,5 +1,5 @@
-import { TransactionManagement } from "@/components/form/TransactionManagement";
-import Header from "@/components/layout/topbar";
+import { TransactionManagement } from "@/features/transaction";
+import Header from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 const TransactionPage = () => {

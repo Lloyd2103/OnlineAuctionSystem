@@ -1,52 +1,60 @@
 import itemRepository from '../repositories/ItemRepository.js';
 
 class ItemService {
-    
-    async createItem(userId, itemData) {
-        const { itemName, itemDescription, itemAddress, itemStatus, itemImage, price, category, attributes } = itemData;
-        
-        return await itemRepository.create({
+    validateItemAttributes(itemData) {
+        if (!itemData.itemName || itemData.price < 0) {
+            throw new Error('Invalid input on name or price');
+        }
+    }
+
+    // Logic: Kiểm tra trạng thái đã duyệt chưa (Ví dụ để Manager dùng khi tạo Auction)
+    checkApprovalStatus(item) {
+        if (item.itemStatus !== 'approved') {
+            throw new Error('Item is not approved');
+        }
+    }
+
+    async create(userId, itemData) {
+        this.validateItemAttributes(itemData);
+        const data = {
+            ...itemData,
             userId,
-            itemName,
-            itemDescription,
-            itemAddress,
-            itemStatus,
-            itemImage,
-            price,
-            category,
-            attributes: attributes || {}
-        });
+            attributes: itemData.attributes || {}
+        };
+        return await itemRepository.create(data);
     }
 
-    async getAllUserItems(userId) {
-        return await itemRepository.findAllByUserId(userId);
-    }
-
-    async findItemForUser(id, userId) {
-        const item = await itemRepository.findOneByIdAndUserId(id, userId);
+    async getById(id, options = {}) {
+        const item = await itemRepository.findById(id, options);
         if (!item) throw new Error('Item not found');
         return item;
     }
 
-    async updateItem(id, userId, updateData) {
-        const item = await this.findItemForUser(id, userId);
-        const { itemName, itemDescription, itemAddress, itemStatus, itemImage, price, category, attributes } = updateData;
-
-        if (itemName) item.itemName = itemName;
-        if (itemDescription) item.itemDescription = itemDescription;
-        if (itemAddress) item.itemAddress = itemAddress;
-        if (itemStatus) item.itemStatus = itemStatus;
-        if (itemImage) item.itemImage = itemImage;
-        if (price) item.price = price;
-        if (category) item.category = category;
-        if (attributes) item.attributes = attributes;
-
-        return await itemRepository.save(item);
+    async getItemsByUserId(userId, options = {}) {
+        return await itemRepository.findAll({ userId }, options);
     }
 
-    async deleteItem(id, userId) {
-        const item = await this.findItemForUser(id, userId);
-        return await itemRepository.destroy(item);
+    async updateFields(itemInstance, updateData) {
+        if (updateData.price !== undefined) {
+            this.validateItemAttributes({ ...itemInstance.get({ plain: true }), ...updateData });
+        }
+
+        const fields = [
+            'itemName', 'itemDescription', 'itemAddress', 
+            'itemStatus', 'itemImage', 'price', 'category', 'attributes'
+        ];
+
+        fields.forEach(field => {
+            if (updateData[field] !== undefined) {
+                itemInstance[field] = updateData[field];
+            }
+        });
+
+        return await itemRepository.save(itemInstance);
+    }
+
+    async delete(itemInstance) {
+        return await itemRepository.destroy(itemInstance);
     }
 }
 

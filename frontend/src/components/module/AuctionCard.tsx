@@ -1,7 +1,7 @@
 import { Users, Clock } from 'lucide-react'
 import { useCountdown } from '@/hooks/useCountdown'
 import { formatCurrency } from '@/lib/utils'
-import type { Auction } from '@/types/auction'
+import type { Auction } from '@/features/auction/types/auction'
 import { useNavigate } from 'react-router'
 
 interface AuctionCardProps {
@@ -15,7 +15,7 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
   const isEnding = (timeLeft.total ?? 0) > 0 && (timeLeft.total ?? 0) < 6 * 60 * 60 * 1000
 
   const handlePlaceBid = () => {
-    navigate(`/live-auction/${auction.id}`)
+    navigate(`/auction/${auction.id}`)
   }
 
   return (
@@ -43,7 +43,7 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
         {/* Bid count (nếu bạn chưa làm logic đếm bid, có thể để tạm 0 hoặc ẩn đi) */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-foreground/70 px-2 py-1 backdrop-blur-sm">
           <Users className="h-3 w-3 text-primary-foreground" />
-          <span className="text-[10px] font-medium text-primary-foreground">0</span>
+          <span className="text-[10px] font-medium text-primary-foreground">{auction.itemId}</span>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
         {/* Price & Button Section */}
         <div className="mt-4 flex items-end justify-between gap-2">
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Starting Price</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Starting Price </p>
             <p
               className="text-lg font-bold text-bid"
               style={{ fontFamily: 'var(--font-heading)' }}
@@ -96,10 +96,10 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
           </div>
           <button
             onClick={handlePlaceBid}
-            disabled={(timeLeft.total ?? 0) <= 0}
+            // disabled={(timeLeft.total ?? 0) <= 0}
             className="rounded-lg bg-bid px-4 py-2 text-xs font-semibold text-bid-foreground transition-all hover:bg-bid/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
-            Place Bid
+            View
           </button>
         </div>
 

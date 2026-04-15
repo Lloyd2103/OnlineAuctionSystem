@@ -1,6 +1,13 @@
 import express from 'express';
-import { createAuction, getAllAuctions, getAuctionById, updateAuction, deleteAuction } from '../controllers/auctionController.js';
-import { createBid } from '../controllers/bidController.js';
+import { 
+    createAuction, 
+    getAllAuctions, 
+    getAuctionById, 
+    updateAuction, 
+    deleteAuction, 
+    getAuctionsByOwnerId, 
+    buyNow } 
+from '../controllers/auctionController.js';
 import { protectedRoute } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -12,6 +19,8 @@ router.get('/:id', getAuctionById);
 router.post('/', protectedRoute, createAuction);
 router.put('/:id', protectedRoute, updateAuction);
 router.delete('/:id', protectedRoute, deleteAuction);
-router.post('/:id/bid', protectedRoute, createBid);
+router.post('/:id/buy', protectedRoute, buyNow);
+router.get('/user/:ownerId', protectedRoute, getAuctionsByOwnerId);
 
-export default router;
+
+export default router;

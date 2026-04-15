@@ -13,12 +13,12 @@ import {
 import {
   AppWindowMac,
   LogOut,
-  Settings,
+  // Settings,
   ShoppingCart,
   User,
   Wallet,
 } from "lucide-react";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from "@/features/auth/stores/authStore";
 import { useNavigate } from "react-router";
 
 type Props = {
@@ -41,8 +41,12 @@ const PROFILE_ITEMS: MenuItem[] = [
   { label: "My Transactions", icon: Wallet, path: '/transaction' },
 ];
 
-const SETTINGS_ITEMS: MenuItem[] = [
-  { label: "Account Settings", icon: Settings },
+// const SETTINGS_ITEMS: MenuItem[] = [
+//   { label: "Account Settings", icon: Settings },
+// ];
+
+const ADMIN_ITEMS: MenuItem[] = [
+  { label: "Admin Dashboard", icon: AppWindowMac, path: '/admin' },
 ];
 
 const LOGOUT_ITEM: MenuItem = {
@@ -93,8 +97,8 @@ const ProfileDropdown = ({ trigger, defaultOpen, align = "end" }: Props) => {
 
           {/* Profile Items */}
           {PROFILE_ITEMS.map(({ label, icon: Icon, path }) => (
-            <DropdownMenuItem 
-              key={label} 
+            <DropdownMenuItem
+              key={label}
               className={itemClass}
               onClick={() => path && navigate(path)} // Thực hiện navigate ở đây
             >
@@ -103,9 +107,7 @@ const ProfileDropdown = ({ trigger, defaultOpen, align = "end" }: Props) => {
             </DropdownMenuItem>
           ))}
 
-          <DropdownMenuSeparator />
-
-          {/* Settings */}
+          {/* <DropdownMenuSeparator />
           <DropdownMenuGroup>
             {SETTINGS_ITEMS.map(({ label, icon: Icon, path }) => (
               <DropdownMenuItem 
@@ -118,8 +120,23 @@ const ProfileDropdown = ({ trigger, defaultOpen, align = "end" }: Props) => {
               </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
+          <DropdownMenuSeparator /> */}
 
-          <DropdownMenuSeparator />
+          {user?.identifiedStatus === "unidentified" && (
+            <DropdownMenuGroup>
+              {ADMIN_ITEMS.map(({ label, icon: Icon, path }) => (
+                <DropdownMenuItem
+                  key={label}
+                  className={itemClass}
+                  onClick={() => path && navigate(path)}
+                >
+                  <Icon size={20} className="text-foreground" />
+                  <span>{label}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+            </DropdownMenuGroup>
+          )}
 
           {/* Logout */}
           <DropdownMenuItem variant="destructive" className={itemClass} onClick={handleLogout}>

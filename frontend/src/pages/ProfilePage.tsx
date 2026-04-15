@@ -1,5 +1,5 @@
-import { UserProfilePage } from "@/components/form/ProfileForm";
-import Header from "@/components/layout/topbar";
+import { ProfileView } from "@/features/profile";
+import Header from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 
@@ -8,7 +8,7 @@ const ProfilePage = () => {
         <div className="min-h-screen flex flex-col bg-background">
             <Header />
             <div className="flex-1">
-                <UserProfilePage/>
+                <ProfileView />
             </div>
             <Footer />
         </div>

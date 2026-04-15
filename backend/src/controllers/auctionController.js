@@ -18,11 +18,18 @@ export const getAuctionById = async (req, res) => {
     }
 };
 
+export const getAuctionsByOwnerId = async (req, res) => {
+    try {
+        const auctions = await auctionManager.getAuctionsByOwnerId(req.params.ownerId);
+        return res.status(200).json({ auctions });
+    } catch (error) {
+        return res.status(404).json({ message: error.message });
+    }
+};
+
 export const getAllAuctions = async (req, res) => {
     try {
-
         const auctions = await auctionManager.getAllAuctions();
-
         return res.status(200).json({ auctions });
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -45,5 +52,23 @@ export const deleteAuction = async (req, res) => {
         return res.status(200).json({ message: 'Auction deleted successfully' });
     } catch (error) {
         return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getDepositStatus = async (req, res) => {
+    try {
+        const status = await auctionManager.getDepositStatus(req.user.id, req.params.id);
+        return res.status(200).json({ status });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const buyNow = async (req, res) => {
+    try {
+        const auction = await auctionManager.buyNow(req.params.id, req.user.id);
+        return res.status(200).json({ message: 'Buy successfully', auction });
+    } catch (error) {
+        return res.status(400).json({ message: error.message });
     }
 };

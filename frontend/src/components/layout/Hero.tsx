@@ -3,7 +3,7 @@ import { useCountdown } from '@/hooks/useCountdown'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
-import { useAuctionStore } from '@/stores/auctionStore'
+import { useAuctionStore } from '@/features/auction/stores/auctionStore'
 import { formatCurrency } from '@/lib/utils'
 
 function CountdownUnit({ value, label }: { value: number; label: string }) {
@@ -25,15 +25,15 @@ export function Hero() {
   const auctions = useAuctionStore((state) => state.auctions)
   const loading = useAuctionStore((state) => state.loading)
   const fetchAllAuctions = useAuctionStore((state) => state.fetchAllAuctions)
-  
+
   useEffect(() => {
     if (auctions.length === 0) {
       fetchAllAuctions();
     }
   }, [fetchAllAuctions, auctions.length]);
 
-  const featuredAuction = auctions[0];
-  const timeLeft = useCountdown(auctions[0]?.endTime ?? new Date());
+  const featuredAuction = auctions.find(auction => auction.auctionStatus === 'ACTIVE');
+  const timeLeft = useCountdown(featuredAuction?.endTime ?? new Date());
 
   if (loading && auctions.length === 0) {
     return (
@@ -52,7 +52,7 @@ export function Hero() {
 
   const handleJoinBidding = () => {
     if (featuredAuction) {
-      navigate(`/live-auction/${featuredAuction.id}`)
+      navigate(`/auction/${featuredAuction.id}`)
     }
   }
   return (
@@ -164,14 +164,17 @@ export function Hero() {
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 onClick={handleJoinBidding}
-                className="flex items-center gap-2 rounded-lg bg-bid px-6 py-3.5 text-sm font-semibold text-bid-foreground shadow-lg shadow-bid/25 hover:bg-bid/90 transition-all hover:shadow-bid/40"
+                className="flex items-center gap-2 rounded-lg bg-bid px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-bid/25 hover:bg-bid/90 transition-all hover:shadow-bid/40"
               >
                 Join the Bidding
                 <ArrowRight className="h-4 w-4" />
               </button>
-              <button className="rounded-lg border border-primary-foreground/20 px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary-foreground/10 transition-colors">
+              <button
+                onClick={() => navigate('/marketplace')}
+                className="rounded-lg border border-primary-foreground/20 px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary-foreground/10 transition-colors">
                 Browse Catalog
               </button>
+
             </div>
 
             {/* Trust indicators */}

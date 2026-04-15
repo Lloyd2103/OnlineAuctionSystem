@@ -1,8 +1,20 @@
-import userService from '../services/userService.js';
+import userManager from '../managers/userManager.js';
 
 export const getUserProfile = async (req, res) => {
     try {
         const user = req.user;
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        return res.status(200).json({ user });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await userManager.getUserProfile(id);
         if (!user) return res.status(404).json({ message: 'User not found' });
         
         return res.status(200).json({ user });
@@ -21,20 +33,11 @@ export const updateUserProfile = async (req, res) => {
             delete updateData.userImage;
         }
 
-        await userService.updateProfile(req.user, updateData);
+        await userManager.updateUserProfile(req.user, updateData);
 
         return res.status(200).json({ message: 'User profile updated successfully'});
     } catch (error) {
         console.error("Lỗi Controller:", error.message);
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-export const getWalletBalance = async (req, res) => {
-    try {
-        const balance = await userService.getBalance(req.user);
-        return res.status(200).json({ walletBalance: balance });
-    } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 };
@@ -44,7 +47,7 @@ export const submitUserRating = async (req, res) => {
         const { id } = req.params;
         const { rating } = req.body;
         
-        const updatedUser = await userService.updateUserRating(id, rating);
+        const updatedUser = await userManager.submitUserRating(id, rating);
         
         return res.status(200).json({ 
             message: 'Rating submitted successfully', 

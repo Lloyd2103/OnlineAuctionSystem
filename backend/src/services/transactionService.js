@@ -1,106 +1,42 @@
-import sequelize from '../libs/db.js';
 import transactionRepository from '../repositories/TransactionRepository.js';
-import userRepository from '../repositories/UserRepository.js';
 
 class TransactionService {
-    // Nạp tiền
-    async deposit(userInstance, amount) {
-        userInstance.walletBalance = parseFloat(userInstance.walletBalance) + parseFloat(amount);
-        await userRepository.save(userInstance);
-        
-        // Tạo bản ghi giao dịch (tùy chọn nhưng nên có)
-        await transactionRepository.create({
-            userId: userInstance.id,
-            amount,
-            type: 'DEPOSIT',
+    async createTransaction(data, options = {}) {
+        return await transactionRepository.create({
+            ...data,
             transactionStatus: 'COMPLETED',
-            paymentMethod: 'WALLET',
-            paymentStatus: 'COMPLETED',
-            walletBalance: userInstance.walletBalance
-        });
+            paymentMethod: data.paymentMethod || 'WALLET',
+            paymentStatus: 'COMPLETED'
+        }, options);
+    }
+
+    async updateTransaction(transaction, data, options = {}) {
         
-        return userInstance.walletBalance;
+        return await transactionRepository.update(transaction, data, options);
     }
 
-    // Rút tiền
-    async withdraw(userInstance, amount) {
-        if (parseFloat(userInstance.walletBalance) < parseFloat(amount)) {
-            throw new Error('Insufficient wallet balance');
-        }
-        userInstance.walletBalance = parseFloat(userInstance.walletBalance) - parseFloat(amount);
-        await userRepository.save(userInstance);
-        
-        await transactionRepository.create({
-            userId: userInstance.id,
-            amount,
-            type: 'WITHDRAWAL',
-            transactionStatus: 'COMPLETED',
-            paymentMethod: 'WALLET',
-            paymentStatus: 'COMPLETED',
-            walletBalance: userInstance.walletBalance
-        });
-        
-        return userInstance.walletBalance;
+    async deleteTransaction(transaction, options = {}) {
+
+        return await transactionRepository.delete(transaction, options);
     }
 
-    // Chuyển tiền (Sử dụng Database Transaction để đảm bảo an toàn)
-    async transfer(senderInstance, recipientUsername, amount) {
-        if (parseFloat(senderInstance.walletBalance) < parseFloat(amount)) {
-            throw new Error('Insufficient wallet balance');
-        }
-
-        const t = await sequelize.transaction();
-        try {
-            const recipient = await userRepository.findByUsername(recipientUsername, { transaction: t });
-
-            if (!recipient) throw new Error('Recipient user not found');
-
-            // Trừ tiền người gửi, cộng tiền người nhận
-            senderInstance.walletBalance = parseFloat(senderInstance.walletBalance) - parseFloat(amount);
-            recipient.walletBalance = parseFloat(recipient.walletBalance) + parseFloat(amount);
-
-            await userRepository.save(senderInstance, { transaction: t });
-            await userRepository.save(recipient, { transaction: t });
-
-            // Lưu lịch sử giao dịch cho cả 2
-            await transactionRepository.bulkCreate([
-                { 
-                    userId: senderInstance.id, 
-                    amount: -amount, 
-                    type: 'TRANSFER_OUT', 
-                    transactionStatus: 'COMPLETED',
-                    paymentMethod: 'WALLET',
-                    paymentStatus: 'COMPLETED',
-                    walletBalance: senderInstance.walletBalance
-                },
-                { 
-                    userId: recipient.id, 
-                    amount: amount, 
-                    type: 'TRANSFER_IN', 
-                    transactionStatus: 'COMPLETED',
-                    paymentMethod: 'WALLET',
-                    paymentStatus: 'COMPLETED',
-                    walletBalance: recipient.walletBalance
-                }
-            ], { transaction: t });
-
-            await t.commit();
-            return senderInstance.walletBalance;
-        } catch (error) {
-            await t.rollback();
-            throw error;
-        }
+    async findDepositStatus(userId, auctionId, options = {}) {
+        return await transactionRepository.findOne({
+            userId,
+            auctionId,
+            type: 'AUCTION_DEPOSIT'
+        }, options);
     }
 
-    // Các hàm xử lý bản ghi giao dịch thuần túy
-    async getHistory(userId) {
-        return await transactionRepository.findAllByUserId(userId);
+    async getDepositsByAuctionId(auctionId, options = {}) {
+        return await transactionRepository.findAll({
+            auctionId,
+            type: 'AUCTION_DEPOSIT'
+        }, options);
     }
 
-    async findTransaction(id, userId) {
-        const transaction = await transactionRepository.findOneByIdAndUserId(id, userId);
-        if (!transaction) throw new Error('Transaction not found');
-        return transaction;
+    async getTransactions(userId) {
+        return await transactionRepository.findAll({ userId }, [['createdAt', 'DESC']]);
     }
 }
 

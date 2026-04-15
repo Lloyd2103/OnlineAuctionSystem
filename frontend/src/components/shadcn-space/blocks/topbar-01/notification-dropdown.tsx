@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,14 +12,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
-import {
-  Headset,
-  Salad,
-  ScanText,
-  Star,
-  Video,
-} from "lucide-react";
+import { type LucideIcon, Bell, Star, TrendingUp } from "lucide-react";
+import { io } from "socket.io-client";
+import { useAuthStore } from "@/features/auth/stores/authStore";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   trigger: ReactNode;
@@ -27,63 +23,67 @@ type Props = {
   align?: "start" | "center" | "end";
 };
 
-type MenuItem = {
-  textColor: string;
-  bgColor: string;
-  icon: LucideIcon;
+type NotificationItem = {
+  id: string;
+  type: string;
   title: string;
-  desc: string;
-  time: string;
+  message: string;
+  timestamp: Date;
+  isRead: boolean;
 };
 
-const PROFILE_ITEMS: MenuItem[] = [
-  {
-    textColor: "stroke-blue-500",
-    bgColor: "bg-blue-500/10",
-    icon: Star,
-    title: "Event Today",
-    desc: "Just reminder that you have to",
-    time: "9:00 AM",
-  },
-  {
-    textColor: "stroke-orange-400",
-    bgColor: "bg-orange-400/10",
-    icon: Video,
-    title: "Team Meeting",
-    desc: "Discuss project updates and next steps",
-    time: "10:00 AM",
-  },
-  {
-    textColor: "stroke-teal-400",
-    bgColor: "bg-teal-400/10",
-    icon: Salad,
-    title: "Lunch Break",
-    desc: "Take a break and recharge",
-    time: "12:30 PM",
-  },
-  {
-    textColor: "stroke-red-500",
-    bgColor: "bg-red-500/10",
-    icon: Headset,
-    title: "Client Call",
-    desc: "Monthly check-in with the client",
-    time: "3:00 PM",
-  },
-  {
-    textColor: "stroke-sky-400",
-    bgColor: "bg-sky-400/10",
-    icon: ScanText,
-    title: "Project Review",
-    desc: "Review project deliverables with client",
-    time: "4:00 PM",
-  },
-];
+const getNotificationStyle = (type: string): { icon: LucideIcon; textColor: string; bgColor: string } => {
+  switch (type) {
+    case "AUCTION_WIN":
+      return { icon: Star, textColor: "stroke-yellow-500", bgColor: "bg-yellow-500/10" };
+    case "OUTBID":
+      return { icon: TrendingUp, textColor: "stroke-red-500", bgColor: "bg-red-500/10" };
+    default:
+      return { icon: Bell, textColor: "stroke-blue-500", bgColor: "bg-blue-500/10" };
+  }
+};
 
 const NotificationDropdown = ({
   trigger,
   defaultOpen,
   align = "end",
 }: Props) => {
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const { isAuthenticated, accessToken } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) return;
+
+    const URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+
+    const newSocket = io(URL, {
+      autoConnect: true,
+      transports: ['websocket', 'polling'],
+      auth: { token: accessToken }
+    });
+
+    newSocket.on("new_notification", (data) => {
+      setNotifications((prev) => [
+        {
+          id: Math.random().toString(), // Tạm thời dùng random ID
+          type: data.type || "INFO",
+          title: data.title || "Notification",
+          message: data.message || "",
+          timestamp: new Date(data.timestamp || new Date()),
+          isRead: false,
+        },
+        ...prev,
+      ]);
+    });
+
+    return () => {
+      newSocket.off("new_notification");
+      newSocket.disconnect();
+    };
+  }, [isAuthenticated, accessToken]);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   return (
     <div className="flex items-center justify-center">
       <DropdownMenu defaultOpen={defaultOpen}>
@@ -99,40 +99,55 @@ const NotificationDropdown = ({
               <p className="text-base font-medium text-popover-foreground">
                 Notifications
               </p>
-              <Badge className="h-5 font-normal leading-0">5 New</Badge>
+              {unreadCount > 0 && (
+                <Badge className="h-5 font-normal leading-0">{unreadCount} New</Badge>
+              )}
             </DropdownMenuLabel>
 
             {/* Notifications */}
-            {PROFILE_ITEMS.map(
-              ({ bgColor, textColor, icon: Icon, title, desc, time }) => (
-                <DropdownMenuItem
-                  key={title}
-                  className={
-                    "mx-1.5 my-1 p-2 flex items-center justify-between cursor-pointer"
-                  }
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn("p-2.5 rounded-xl", bgColor)}>
-                      <Icon size={20} className={cn("size-5", textColor)} />
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No new notifications
+              </div>
+            ) : (
+              notifications.map((notif) => {
+                const { icon: Icon, textColor, bgColor } = getNotificationStyle(notif.type);
+                return (
+                  <DropdownMenuItem
+                    key={notif.id}
+                    className="mx-1.5 my-1 p-2 flex items-center justify-between cursor-pointer"
+                    onClick={() => {
+                      // Mark as read when clicked
+                      setNotifications((prev) =>
+                        prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
+                      );
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn("p-2.5 rounded-xl", bgColor)}>
+                        <Icon size={20} className={cn("size-5", textColor)} />
+                      </div>
+                      <div>
+                        <p className={cn("text-sm font-medium", notif.isRead ? "text-muted-foreground" : "text-popover-foreground")}>
+                          {notif.title}
+                        </p>
+                        <p className="max-w-52 truncate text-sm text-muted-foreground">
+                          {notif.message}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-popover-foreground">
-                        {title}
-                      </p>
-                      <p className="max-w-52 truncate text-sm text-muted-foreground">
-                        {desc}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{time}</p>
-                </DropdownMenuItem>
-              ),
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(notif.timestamp, { addSuffix: true })}
+                    </p>
+                  </DropdownMenuItem>
+                );
+              })
             )}
 
             {/* button */}
             <div className="mx-1.5 my-1 p-2">
-              <Button className="rounded-xl w-full cursor-pointer hover:bg-primary/80">
-                See All Notifications
+              <Button className="rounded-xl w-full cursor-pointer hover:bg-primary/80" onClick={() => setNotifications([])}>
+                Clear All Notifications
               </Button>
             </div>
           </DropdownMenuGroup>

@@ -1,25 +1,16 @@
+import RepositoryInterface from './RepositoryInterface.js';
 import Transaction from '../models/Transaction.js';
 
-class TransactionRepository {
-	async create(data, options = {}) {
-		return await Transaction.create(data, options);
-	}
+class TransactionRepository extends RepositoryInterface {
+	async create(data, options = {}) { return await Transaction.create(data, options); }
+	async update(values, where, options = {}) { return await Transaction.update(values, { where, ...options }); }
+	async destroy(where, options = {}) { return await Transaction.destroy({ where, ...options }); }
+	async save(transactionInstance, options = {}) { return await transactionInstance.save(options); }
 
-	async bulkCreate(rows, options = {}) {
-		return await Transaction.bulkCreate(rows, options);
-	}
-
-	async findAllByUserId(userId, options = {}) {
-		return await Transaction.findAll({
-		where: { userId },
-		order: [['createdAt', 'DESC']],
-		...options,
-		});
-	}
-
-	async findOneByIdAndUserId(id, userId, options = {}) {
-		return await Transaction.findOne({ where: { id, userId }, ...options });
-	}
+	async findAll(where = {}, options = {}) { return await Transaction.findAll({ where, ...options }); }
+	async findOne(where = {}, options = {}) { return await Transaction.findOne({ where, ...options }); }
+	async findById(id, options = {}) { return await Transaction.findByPk(id, options); }
+	async bulkCreate(rows, options = {}) { return await Transaction.bulkCreate(rows, options); }
 }
 
 export default new TransactionRepository();

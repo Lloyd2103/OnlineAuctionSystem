@@ -26,7 +26,7 @@ const Item = sequelize.define('Item', {
     itemStatus: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'available'
+        defaultValue: 'pending' // pending, approved, rejected, available
     },
     itemImage: {
         type: DataTypes.STRING,

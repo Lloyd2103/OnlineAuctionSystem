@@ -14,15 +14,18 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date);
+  }).format(d);
 }
+
+export const fmtDate = formatDate;
 
 export function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -86,3 +89,8 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 export const formatPrice = formatCurrency;
+export const fmtPrice = formatCurrency;
+
+export function isIncoming(type: string) {
+  return ['DEPOSIT', 'REFUND'].includes(type);
+}

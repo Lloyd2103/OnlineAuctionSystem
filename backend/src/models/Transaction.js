@@ -19,7 +19,7 @@ const Transaction = sequelize.define('Transaction', {
         }
     },
     type: {
-        type: DataTypes.ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'AUCTION_PAYMENT', 'REFUND'),
+        type: DataTypes.ENUM('DEPOSIT', 'WITHDRAWAL', 'TRANSFER_IN', 'TRANSFER_OUT', 'AUCTION_PAYMENT', 'AUCTION_REFUND', 'AUCTION_DEPOSIT'),
         allowNull: false
     },
     amount: {

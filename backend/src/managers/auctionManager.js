@@ -1,163 +1,98 @@
+import auctionService from '../services/auctionService.js';
+import itemService from '../services/itemService.js';
+import userService from '../services/userService.js';
+
+import bidService from '../services/bidService.js';
 import sequelize from '../libs/db.js';
-import { getIO } from '../libs/socket.js';
 
-import auctionRepository from '../repositories/AuctionRepository.js';
-import bidRepository from '../repositories/BidRepository.js';
-import userRepository from '../repositories/UserRepository.js';
+import { IAuctionManager } from './interfaces/IAuctionManager.js';
 
-import { AuctionStateFactory } from '../domain/auction/AuctionStateFactory.js';
-import { StandardBidValidation } from '../domain/bidding/StandardBidValidation.js';
-import { IAuctionManager } from '../interfaces/IAuctionManager.js';
-
-import Item from '../models/Item.js';
-import Auction from '../models/Auction.js';
-const bidValidation = new StandardBidValidation();
+import { auctionEvents, AUCTION_EVENTS } from '../domains/auction/events/AuctionEventEmitter.js';
+import { scheduleAuctionStart, scheduleAuctionEnd } from '../domains/auction/jobs/cron.js';
 
 class AuctionManager extends IAuctionManager {
-    async createAuction(ownerId, payload) {
-        if (new Date(payload.startTime) >= new Date(payload.endTime)) {
-        throw new Error('Thời gian bắt đầu phải trước thời gian kết thúc');
-        }
-
-        const {
-        itemId,
-        title,
-        description,
-        startTime,
-        endTime,
-        startingPrice,
-        incrementPrice,
-        instantBuyPrice,
-        mandatoryDeposit,
-        } = payload;
-
-        return await auctionRepository.create({
-        ownerId,
-        itemId,
-        title,
-        description,
-        startTime,
-        endTime,
-        startingPrice,
-        incrementPrice,
-        instantBuyPrice,
-        mandatoryDeposit,
-        });
+    async createAuction(userId, payload) {
+        const owner = await userService.findUserById(userId);
+        if (owner.userStatus === 'banned') throw new Error('Your account has been banned');
+        const item = await itemService.getById(payload.itemId);
+        // itemService.checkApprovalStatus(item);
+        const newAuction = await auctionService.createAuction(userId, payload);
+        scheduleAuctionStart(newAuction.id, newAuction.startTime);
+        scheduleAuctionEnd(newAuction.id, newAuction.endTime);
+        return newAuction;
     }
 
     async getAuctionById(id) {
-        const auction = await auctionRepository.findById(id, {
-            include: [
-                {
-                    model: Item, // Model bạn muốn join
-                    as: 'item',  // Phải khớp với "as" lúc khai báo association
-                    attributes: ['itemName', 'itemDescription', 'itemImage', 'itemAddress', 'category', 'attributes'] // Chỉ lấy các field cần thiết
-                }
-            ]
-        });
-        
-        if (!auction) throw new Error('Auction not found');
-        return auction;
+        return await auctionService.getAuctionById(id);
+    }
+
+    async getAuctionsByOwnerId(userId) {
+        const auctions = await auctionService.getAuctionsByUser(userId);
+        return auctions.map(a => a.toJSON ? a.toJSON() : a);
     }
 
     async getAllAuctions() {
-        const auctions = await auctionRepository.findAll({
-            include: [
-                {
-                    model: Item, // Model bạn muốn join
-                    as: 'item',  // Phải khớp với "as" lúc khai báo association
-                    attributes: ['itemName', 'itemDescription', 'itemImage', 'itemAddress', 'category', 'attributes'] // Chỉ lấy các field cần thiết
-                }
-            ]
-        });
-
-        return auctions.map(auction => auction.toJSON());
+        const auctions = await auctionService.getAllAuctions();
+        return auctions.map(a => a.toJSON ? a.toJSON() : a);
     }
 
-    async updateAuction(id, ownerId, payload) {
-        const auction = await this.getAuctionById(id);
-
-        const state = AuctionStateFactory.fromAuction(auction);
-        if (!state.canEditAuction(auction, ownerId)) {
-        throw new Error('Forbidden: Bạn không có quyền thực hiện thao tác này');
+    async updateAuction(id, userId, payload) {
+        const auction = await auctionService.getAuctionById(id);
+        if (auction.ownerId !== userId) {
+            throw new Error('Forbidden: You do not have permission to perform this action');
         }
-
-        const { itemId, title, description, auctionStatus, startTime, endTime, startingPrice, incrementPrice, instantBuyPrice, mandatoryDeposit } = payload;
-        if (itemId) auction.itemId = itemId;
-        if (title) auction.title = title;
-        if (description) auction.description = description;
-        if (auctionStatus) auction.auctionStatus = auctionStatus;
-        if (startTime) auction.startTime = startTime;
-        if (endTime) auction.endTime = endTime;
-        if (startingPrice) auction.startingPrice = startingPrice;
-        if (incrementPrice) auction.incrementPrice = incrementPrice;
-        if (instantBuyPrice) auction.instantBuyPrice = instantBuyPrice;
-        if (mandatoryDeposit) auction.mandatoryDeposit = mandatoryDeposit;
-        return await auctionRepository.save(auction);
+        return await auctionService.updateAuction(auction, payload);
     }
 
-    async deleteAuction(id, ownerId) {
-        const auction = await this.getAuctionById(id);
-
-        const state = AuctionStateFactory.fromAuction(auction);
-        if (!state.canDeleteAuction(auction, ownerId)) {
-        throw new Error('Forbidden: Bạn không có quyền thực hiện thao tác này');
+    async deleteAuction(id, userId) {
+        const auction = await auctionService.getAuctionById(id);
+        if (auction.ownerId !== userId) {
+            throw new Error('Forbidden: You do not have permission to perform this action');
         }
-
-        const bidCount = await auction.countBids();
-        if (bidCount > 0) throw new Error('Không thể xóa phiên đã có người đặt giá');
-
-        await auctionRepository.destroy(auction);
+        await auctionService.deleteAuction(auction);
     }
 
-    async placeBid(bidderId, { auctionId, bidAmount }) {
+    async handleTimeEvent(auctionId, actionType) {
+        if (actionType === 'START') {
+            const auction = await auctionService.getAuctionById(auctionId);
+            await auctionService.changeState(auction, actionType);
+            auctionEvents.emit(AUCTION_EVENTS.STARTED, auction);
+        } else if (actionType === 'END') {
+            const { winnerId, winningAmount } = await this.finalizeAuction(auctionId);
+
+            const auction = await auctionService.getAuctionById(auctionId);
+            auctionEvents.emit(AUCTION_EVENTS.ENDED, { auction, winnerId, winningAmount });
+        }
+    }
+
+    async finalizeAuction(auctionId) {
         const t = await sequelize.transaction();
         try {
-        const auction = await auctionRepository.findById(auctionId, { transaction: t });
-        if (!auction) throw new Error('Auction not found');
+            // 1. Lấy và cập nhật trạng thái Auction thành FINISHED
+            const auction = await auctionService.getAuctionById(auctionId, { transaction: t });
+            await auction.update({ auctionStatus: 'FINISHED' }, { transaction: t });
 
-        const now = new Date();
-        const state = AuctionStateFactory.fromAuction(auction, now);
-        if (!state.canPlaceBid(auction, now)) throw new Error('Phiên đấu giá hiện không diễn ra');
+            // 2. Tìm người thắng cuộc
+            const winningBid = await bidService.getHighestBid(auctionId, { transaction: t });
+            let winnerId = null;
+            let winningAmount = 0;
+            
+            if (winningBid) {
+                await winningBid.update({ isWinningBid: true }, { transaction: t });
+                winnerId = winningBid.bidderId;
+                winningAmount = winningBid.bidAmount;
+            }
 
-        const bidder = await userRepository.findById(bidderId, { transaction: t });
-        const highestBid = await bidRepository.findHighestByAuctionId(auctionId, { transaction: t });
+            // 3. Hoàn tiền cho người thua thông qua processRefunds
+            await this.processRefunds(auction, winnerId, t);
 
-        bidValidation.validate({ auction, highestBid, bidder, bidAmount, now });
-
-        const bid = await bidRepository.create(
-            { auctionId, bidderId, bidAmount },
-            { transaction: t }
-        );
-
-        await t.commit();
-
-        const io = getIO();
-        io.to(`auction_${auctionId}`).emit('new_bid', {
-            auctionId,
-            highestBid: bidAmount,
-            bidderId,
-            bidderName: bidder.userName,
-        });
-
-        return bid;
-        } catch (e) {
-        await t.rollback();
-        throw e;
+            await t.commit();
+            return { winnerId, winningAmount };
+        } catch (error) {
+            await t.rollback();
+            console.error(`[AuctionManager] Error finalizing auction ${auctionId}:`, error);
+            throw error;
         }
-    }
-
-    async getAuctionStats(auctionId) {
-        const bids = await bidRepository.findAllByAuctionId(auctionId);
-        const count = bids.length;
-        const highest = bids[0] || null;
-        const average =
-        count > 0 ? bids.reduce((acc, b) => acc + parseFloat(b.bidAmount), 0) / count : 0;
-        return { bids, count, highest, average };
-    }
-
-    async getBidHistory(bidderId) {
-        return await bidRepository.findAllByBidderId(bidderId);
     }
 }
 

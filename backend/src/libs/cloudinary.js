@@ -13,8 +13,8 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-    folder: 'user_profiles', // Thư mục trên Cloudinary
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    folder: 'user_profiles',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
     },
 });
 

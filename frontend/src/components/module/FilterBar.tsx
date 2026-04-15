@@ -1,9 +1,9 @@
 import { SlidersHorizontal, X } from 'lucide-react'
-import { useFilterStore } from '@/stores/auctionStore'
-import type { AuctionCategory, AuctionStatus } from '@/types/auction'
+import { useFilterStore } from '@/features/auction/stores/auctionStore'
+import type { AuctionCategory, AuctionStatus } from '@/features/auction/types/auction'
 
 const categories: AuctionCategory[] = ['All', 'Art', 'Electronics', 'Fashion', 'Jewelry', 'Media', 'Vehicles', 'Real Estates', 'Sports']
-const statuses: AuctionStatus[] = ['All', 'Live', 'Upcoming', 'Ended']
+const statuses: AuctionStatus[] = ['ALL', 'ACTIVE', 'UPCOMING', 'ENDED']
 
 const priceRanges = [
   { label: 'Any Price', min: 0, max: 50000 },
@@ -18,7 +18,7 @@ export function FilterBar() {
     useFilterStore()
 
   const hasActiveFilters =
-    category !== 'All' || status !== 'All' || priceRange[0] !== 0 || priceRange[1] !== 50000
+    category !== 'All' || status !== 'ALL' || priceRange[0] !== 0 || priceRange[1] !== 50000
 
   return (
     <section className="border-b border-border bg-card" id="auctions">
@@ -34,7 +34,7 @@ export function FilterBar() {
               className="ml-auto flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="h-3 w-3" />
-              Clear All
+              Clear ALL
             </button>
           )}
         </div>
@@ -46,11 +46,10 @@ export function FilterBar() {
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
-                  category === cat
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                }`}
+                className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-ALL ${category === cat
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
               >
                 {cat}
               </button>
@@ -66,13 +65,12 @@ export function FilterBar() {
               <button
                 key={s}
                 onClick={() => setStatus(s)}
-                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
-                  status === s
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                }`}
+                className={`flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-ALL ${status === s
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
               >
-                {s === 'Live' && (
+                {s === 'ACTIVE' && (
                   <span className={`h-1.5 w-1.5 rounded-full ${status === s ? 'bg-primary-foreground' : 'bg-live'} animate-pulse-live`} />
                 )}
                 {s}
@@ -89,11 +87,10 @@ export function FilterBar() {
               <button
                 key={range.label}
                 onClick={() => setPriceRange([range.min, range.max])}
-                className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
-                  priceRange[0] === range.min && priceRange[1] === range.max
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-secondary text-secondary-foreground hover:bg-accent'
-                }`}
+                className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-ALL ${priceRange[0] === range.min && priceRange[1] === range.max
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
               >
                 {range.label}
               </button>

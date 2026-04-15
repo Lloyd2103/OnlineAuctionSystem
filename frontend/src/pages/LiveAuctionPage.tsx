@@ -1,6 +1,6 @@
-import Header from '@/components/layout/topbar'
+import Header from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { LiveAuction } from '@/components/form/LiveAuctionForm'
+import { LiveAuction } from '@/features/auction'
 
 const LiveAuctionPage = () => {
     return (

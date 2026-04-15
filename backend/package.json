@@ -25,7 +25,6 @@
     "node-cron": "^4.2.1",
     "pg": "^8.19.0",
     "pg-hstore": "^2.3.4",
-    "postgre": "^0.1.8",
     "sequelize": "^6.37.7",
     "socket.io": "^4.8.3"
   },

@@ -9,8 +9,10 @@ class TransactionRepository extends RepositoryInterface {
 
 	async findAll(where = {}, options = {}) { return await Transaction.findAll({ where, ...options }); }
 	async findOne(where = {}, options = {}) { return await Transaction.findOne({ where, ...options }); }
-	async findById(id, options = {}) { return await Transaction.findByPk(id, options); }
+	async findByPk(id, options = {}) { return await Transaction.findByPk(id, options); }
 	async bulkCreate(rows, options = {}) { return await Transaction.bulkCreate(rows, options); }
+
+	async findAndCountAll(where = {}, options = {}) { return await Transaction.findAndCountAll({ where, ...options }); }
 }
 
 export default new TransactionRepository();

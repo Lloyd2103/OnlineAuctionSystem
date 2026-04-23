@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router';
 import { Heart, ShoppingCart, TrendingUp, User, Shield, Wallet, AlertCircle, Loader2, Package, MapPin } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/libs/utils';
 import { useLiveAuctionLogic } from '../hooks/useLiveAuctionLogic';
 import { CountdownDisplay } from './CountdownDisplay';
 import { BidItem } from './BidItem';
@@ -72,7 +72,7 @@ export function LiveAuction() {
                                 <h1 className="text-4xl font-extrabold text-gray-900 mb-2 leading-tight">{auction.title}</h1>
                                 <p className="text-gray-500 flex items-center gap-2">
                                     <User className="w-4 h-4" />
-                                    Người bán: <span 
+                                    Người bán: <span
                                         className="font-semibold text-gray-700 cursor-pointer hover:text-primary transition-colors"
                                         onClick={() => navigate(`/profile/${auction.ownerId}`)}
                                     >
@@ -159,24 +159,30 @@ export function LiveAuction() {
 
                         {/* Bid Form or Deposit Required */}
                         <div className="space-y-6 relative">
-                            {auction.auctionStatus === 'ENDED' ? (
+                            {/* TRƯỜNG HỢP 1: PHIÊN ĐẤU GIÁ ĐÃ KẾT THÚC */}
+                            {(auction.auctionStatus === 'ENDED' || auction.auctionStatus === 'FINISHED') && (
                                 <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center">
                                     <h3 className="font-bold text-gray-900 mb-2">Phiên đấu giá đã kết thúc</h3>
+                                    
                                     {isHighestBidder && user ? (
                                         <>
-                                            <p className="text-green-600 font-bold mb-4">Bạn là người thắng cuộc!</p>
+                                            <p className="text-green-600 font-bold mb-4">Chúc mừng! Bạn là người thắng cuộc!</p>
                                             <button
-                                                onClick={() => window.location.href = `/profile/transactions?tab=payments&auctionId=${id}&amount=${currentPrice}`}
-                                                className="w-full py-4 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 flex items-center justify-center gap-2 shadow-lg"
+                                                onClick={() => navigate(`/transaction?tab=payments&auctionId=${id}&amount=${currentPrice}`)}
+                                                className="w-full py-4 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
                                             >
+                                                <Wallet className="w-5 h-5" />
                                                 Thanh toán ngay
                                             </button>
                                         </>
                                     ) : (
-                                        <p className="text-gray-500 text-sm">Cảm ơn bạn đã quan tâm.</p>
+                                        <p className="text-gray-500 text-sm">Cảm ơn bạn đã quan tâm đến phiên đấu giá này.</p>
                                     )}
                                 </div>
-                            ) : !hasDeposit ? (
+                            )}
+
+                            {/* TRƯỜNG HỢP 2: ĐANG DIỄN RA NHƯNG CHƯA ĐẶT CỌC */}
+                            {auction.auctionStatus === 'ACTIVE' && !hasDeposit && (
                                 <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
                                     <div className="flex items-start gap-4 mb-4">
                                         <div className="p-2 bg-yellow-100 rounded-xl">
@@ -197,53 +203,57 @@ export function LiveAuction() {
                                         Đặt cọc ngay
                                     </button>
                                 </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-                                            Đặt giá của bạn
-                                        </label>
-                                        <span className="text-xs text-primary font-bold">
-                                            Bước giá: +{formatCurrency(bidIncrement)}
-                                        </span>
-                                    </div>
-                                    <div className="relative group">
-                                        <input
-                                            type="number"
-                                            value={bidAmount}
-                                            onChange={(e) => setBidAmount(parseInt(e.target.value))}
-                                            min={currentPrice + bidIncrement}
-                                            step={bidIncrement}
-                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-2xl font-black text-gray-900"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[1, 2, 5].map((multiplier) => (
-                                            <button
-                                                key={multiplier}
-                                                onClick={() => setBidAmount(currentPrice + (bidIncrement * multiplier))}
-                                                className="py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl border border-gray-200 transition-all text-xs active:scale-95"
-                                            >
-                                                +{multiplier}x
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        onClick={handlePlaceBid}
-                                        disabled={!isAuthenticated || !hasDeposit}
-                                        className="w-full py-5 bg-primary text-white font-black rounded-2xl hover:bg-primary/90 transition shadow-xl shadow-primary/20 flex items-center justify-center gap-3 text-lg active:scale-[0.98]"
-                                    >
-                                        {!isAuthenticated ? 'Đăng nhập để đấu giá' : 'ĐẶT GIÁ NGAY'}
-                                        {!hasDeposit && 'Bạn cần đặt cọc trước khi đấu giá'}
-                                    </button>
-                                </div>
                             )}
+
+                        {/* TRƯỜNG HỢP 3: ĐANG DIỄN RA VÀ ĐÃ ĐẶT CỌC (HIỆN FORM ĐẶT GIÁ) */}
+                        {auction.auctionStatus === 'ACTIVE' && hasDeposit && (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+                                        Đặt giá của bạn
+                                    </label>
+                                    <span className="text-xs text-primary font-bold">
+                                        Bước giá tối thiểu: +{formatCurrency(bidIncrement)}
+                                    </span>
+                                </div>
+                                
+                                <div className="relative group">
+                                    <input
+                                        type="number"
+                                        value={bidAmount}
+                                        onChange={(e) => setBidAmount(parseInt(e.target.value))}
+                                        min={currentPrice + bidIncrement}
+                                        step={bidIncrement}
+                                        className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-2xl font-black text-gray-900"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                    {[1, 2, 5].map((multiplier) => (
+                                        <button
+                                            key={multiplier}
+                                            onClick={() => setBidAmount(currentPrice + (bidIncrement * multiplier))}
+                                            className="py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl border border-gray-200 transition-all text-xs active:scale-95"
+                                        >
+                                            +{multiplier}x Bước giá
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={handlePlaceBid}
+                                    disabled={!isAuthenticated}
+                                    className="w-full py-5 bg-primary text-white font-black rounded-2xl hover:bg-primary/90 transition shadow-xl shadow-primary/20 flex items-center justify-center gap-3 text-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {!isAuthenticated ? 'Vui lòng đăng nhập' : 'ĐẶT GIÁ NGAY'}
+                                </button>
+                            </div>
+                        )}
 
                             {/* Buy Now & Wallet */}
                             <div className="pt-6 border-t border-gray-100 space-y-4">
-                                {auction.auctionStatus !== 'ENDED' && auction.instantBuyPrice ? (
+                                {/* Chỉ hiện nút Mua Ngay nếu đấu giá đang diễn ra (ACTIVE) và có giá mua ngay */}
+                                {auction.auctionStatus === 'ACTIVE' && auction.instantBuyPrice > 0 && (
                                     <button
                                         onClick={handleBuyNow}
                                         className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-green-100"
@@ -251,8 +261,16 @@ export function LiveAuction() {
                                         <ShoppingCart className="w-5 h-5" />
                                         MUA NGAY - {formatCurrency(auction.instantBuyPrice)}
                                     </button>
-                                ) : null}
+                                )}
 
+                                {/* Nếu đã kết thúc, hiện thông báo thay vì hiện cái nút bị disabled */}
+                                {(auction.auctionStatus === 'FINISHED' || auction.auctionStatus === 'ENDED') && (
+                                    <div className="w-full py-4 bg-gray-100 text-gray-500 font-medium rounded-xl flex items-center justify-center gap-2">
+                                        <span className="text-sm">Phiên đấu giá đã kết thúc</span>
+                                    </div>
+                                )}
+
+                                {/* Phần hiển thị ví tiền */}
                                 {isAuthenticated && user && (
                                     <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                         <div className="flex items-center gap-3 text-blue-900">
@@ -283,10 +301,10 @@ export function LiveAuction() {
                             <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                                 {bids.length > 0 ? (
                                     bids.map((bid) => (
-                                        <BidItem 
-                                            key={bid.id} 
-                                            bid={bid} 
-                                            isCurrentUser={Boolean(user && bid.bidderId === user.id.toString())} 
+                                        <BidItem
+                                            key={bid.id}
+                                            bid={bid}
+                                            isCurrentUser={Boolean(user && bid.bidderId === user.id.toString())}
                                         />
                                     ))
                                 ) : (

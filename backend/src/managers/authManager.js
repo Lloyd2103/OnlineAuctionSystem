@@ -1,7 +1,8 @@
 import authService from '../services/authService.js';
 import userService from '../services/userService.js';
+import { AuthManagerInterface } from './interfaces/AuthManagerInterface.js';
 
-class AuthManager {
+class AuthManager extends AuthManagerInterface {
     async signUp(data) {
         const { userName, userEmail, userPhone, userAddress, password } = data;
         if (!userName || !userEmail || !password) {
@@ -38,7 +39,7 @@ class AuthManager {
             throw err;
         }
         if (user.userStatus === 'banned') {
-            const err = new Error('Account banned');
+            const err = new Error('Your account has been banned');
             err.status = 403;
             throw err;
         }

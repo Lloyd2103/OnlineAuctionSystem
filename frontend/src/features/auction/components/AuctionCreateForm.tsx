@@ -25,23 +25,6 @@ export function AuctionCreateForm({ mode, auction, preSelectedItem, onSuccess, o
         handleSubmit
     } = useAuctionFormLogic({ mode, auction, preSelectedItem, onSuccess });
 
-    const PriceField = ({ label, field, hint }: { label: string; field: keyof typeof form; hint?: string }) => (
-        <div>
-            <label className="block text-sm font-medium mb-1.5">{label}</label>
-            <div className="relative">
-                <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                    type="number"
-                    value={form[field] as number}
-                    onChange={(e) => handleFieldChange(field, parseFloat(e.target.value) || 0)}
-                    min={0} step={1}
-                    className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
-                />
-            </div>
-            {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
-        </div>
-    );
-
     return (
         <>
             <div className="flex flex-col max-h-[88vh]">
@@ -166,12 +149,70 @@ export function AuctionCreateForm({ mode, auction, preSelectedItem, onSuccess, o
                             </div>
                         </div>
 
-                        {/* Prices */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <PriceField label="Starting Price *" field="startingPrice" hint="Minimum opening bid" />
-                            <PriceField label="Bid Increment" field="incrementPrice" hint="Minimum raise per bid" />
-                            <PriceField label="Instant Buy Price" field="instantBuyPrice" hint="Set 0 to disable" />
-                            <PriceField label="Mandatory Deposit" field="mandatoryDeposit" hint="Required to join auction" />
+                            {/* 1. Starting Price */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Starting Price *</label>
+                                <div className="relative">
+                                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="number"
+                                        value={form.startingPrice as number}
+                                        onChange={(e) => handleFieldChange("startingPrice", parseFloat(e.target.value) || 0)}
+                                        min={0} step={1}
+                                        className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                                    />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">Minimum opening bid</p>
+                            </div>
+
+                            {/* 2. Bid Increment */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Bid Increment</label>
+                                <div className="relative">
+                                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="number"
+                                        value={form.incrementPrice as number}
+                                        onChange={(e) => handleFieldChange("incrementPrice", parseFloat(e.target.value) || 0)}
+                                        min={0} step={1}
+                                        className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                                    />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">Minimum raise per bid</p>
+                            </div>
+
+                            {/* 3. Instant Buy Price */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Instant Buy Price</label>
+                                <div className="relative">
+                                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="number"
+                                        value={form.instantBuyPrice as number}
+                                        onChange={(e) => handleFieldChange("instantBuyPrice", parseFloat(e.target.value) || 0)}
+                                        min={0} step={1}
+                                        className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                                    />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">Set 0 to disable</p>
+                            </div>
+
+                            {/* 4. Mandatory Deposit */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Mandatory Deposit</label>
+                                <div className="relative">
+                                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <input
+                                        type="number"
+                                        value={form.mandatoryDeposit as number}
+                                        onChange={(e) => handleFieldChange("mandatoryDeposit", parseFloat(e.target.value) || 0)}
+                                        min={0} step={1}
+                                        className="w-full pl-8 pr-3.5 py-2.5 rounded-lg border bg-card focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                                    />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">Required to join auction</p>
+                            </div>
                         </div>
                     </form>
                 </div>

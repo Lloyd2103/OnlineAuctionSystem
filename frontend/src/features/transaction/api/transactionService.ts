@@ -1,4 +1,6 @@
-import api from "@/lib/axios";
+import api from "@/libs/axios";
+import type { PaginatedResponse } from "@/types/pagination";
+import type { Transaction } from "../types";
 
 export const transactionService = {
     getWalletBalance: async (): Promise<{ balance: number }> => {
@@ -6,7 +8,7 @@ export const transactionService = {
         return response.data;
     },
 
-    getUserTransactions: async (params?: { page?: number; type?: string; status?: string }) => {
+    getUserTransactions: async (params?: Record<string, string | number | undefined>): Promise<PaginatedResponse<Transaction>> => {
         const response = await api.get('/transactions/history', { params });
         return response.data;
     },
@@ -33,6 +35,11 @@ export const transactionService = {
             amount,
             paymentMethod,
         });
+        return response.data;
+    },
+
+    getAllTransactions: async (params?: Record<string, string | number | undefined>): Promise<PaginatedResponse<Transaction>> => {
+        const response = await api.get('/transactions/all', { params });
         return response.data;
     },
 };

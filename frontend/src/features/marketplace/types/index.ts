@@ -19,6 +19,6 @@ export type SortOption = 'ending-soon' | 'newest' | 'price-low' | 'price-high' |
 export interface MarketplaceFilters {
     minPrice: number;
     maxPrice: number;
-    status: string;
+    auctionStatus: string;
     sortBy: SortOption;
 }

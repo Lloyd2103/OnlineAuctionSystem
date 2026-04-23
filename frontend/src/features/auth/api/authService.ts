@@ -1,4 +1,4 @@
-import api from "@/lib/axios";
+import api from "@/libs/axios";
 import type { User } from "@/features/auth/types/user";
 
 export const authService = {
@@ -40,7 +40,7 @@ export const authService = {
     },
     fetchUserById: async (id: string) => {
         try {
-            const res = await api.get(`/users/${id}`);
+            const res = await api.get(`/users/profile/${id}`, { withCredentials: true });
             return res.data.user;
         } catch (error) {
             console.error("Lỗi lấy thông tin user theo ID:", error);

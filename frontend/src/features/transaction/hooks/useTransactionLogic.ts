@@ -34,7 +34,8 @@ export interface UseTransactionLogicReturn {
         page: number;
         setPage: (page: number) => void;
         pageSize: number;
-        pageCount: number;
+        totalPages: number;
+        totalItems: number;
         paginatedTransactions: Transaction[];
     };
     // Forms
@@ -80,6 +81,7 @@ export function useTransactionLogic(): UseTransactionLogicReturn {
     const [txStatus, setTxStatus] = useState('All');
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ totalItems: 0, totalPages: 0 });
     const PAGE_SIZE = 10;
 
     // Deposit / Withdrawal
@@ -95,14 +97,26 @@ export function useTransactionLogic(): UseTransactionLogicReturn {
         try {
             if (!silent) setLoading(true);
             else setRefreshing(true);
+            
             const [balData, txData] = await Promise.allSettled([
                 transactionService.getWalletBalance(),
-                transactionService.getUserTransactions(),
+                transactionService.getUserTransactions({
+                    page,
+                    limit: PAGE_SIZE,
+                    type: txType === 'All' ? undefined : txType,
+                    status: txStatus === 'All' ? undefined : txStatus,
+                    search: search || undefined
+                }),
             ]);
+
             if (balData.status === 'fulfilled') setBalance(balData.value?.balance ?? 0);
             if (txData.status === 'fulfilled') {
-                const list = txData.value;
-                setTransactions(Array.isArray(list) ? list : (list?.data ?? list?.transactions ?? []));
+                const response = txData.value;
+                setTransactions(response.data || []);
+                setPagination({
+                    totalItems: response.totalItems,
+                    totalPages: response.totalPages
+                });
             }
         } catch {
             toast.error('Failed to load wallet data');
@@ -110,7 +124,7 @@ export function useTransactionLogic(): UseTransactionLogicReturn {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [page, txType, txStatus, search]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -134,20 +148,11 @@ export function useTransactionLogic(): UseTransactionLogicReturn {
         return { totalIn, totalOut, pendingCount, totalCount: transactions.length, recentTransactions };
     }, [transactions]);
 
-    // Filtered / Paginated
-    const filtered = useMemo(() => {
-        return transactions.filter(t => {
-            const matchType = txType === 'All' || t.type === txType;
-            const matchStatus = txStatus === 'All' || t.transactionStatus === txStatus;
-            const matchSearch = !search || String(t.id).includes(search) ||
-                String(t.auctionId ?? '').includes(search) ||
-                (t.paymentMethod ?? '').toLowerCase().includes(search.toLowerCase());
-            return matchType && matchStatus && matchSearch;
-        });
-    }, [transactions, txType, txStatus, search]);
+    useEffect(() => {
+        setPage(1);
+    }, [txType, txStatus, search]);
 
-    const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
-    const paginatedTransactions = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const paginatedTransactions = transactions; // Already paginated from server
 
     const auctionPayments = useMemo(() =>
         transactions.filter(t => t.auctionId != null && t.type === 'AUCTION_PAYMENT'),
@@ -220,7 +225,8 @@ export function useTransactionLogic(): UseTransactionLogicReturn {
             search, setSearch,
             page, setPage,
             pageSize: PAGE_SIZE,
-            pageCount,
+            totalPages: pagination.totalPages,
+            totalItems: pagination.totalItems,
             paginatedTransactions
         },
         depositAmount, setDepositAmount,

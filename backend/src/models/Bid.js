@@ -29,7 +29,11 @@ const Bid = sequelize.define('Bid', {
     }
 }, {
     tableName: 'bids',
-    timestamps: true 
+    timestamps: true,
+    indexes: [
+        { fields: ['auctionId'] },
+        { fields: ['bidderId'] }
+    ]
 });
 
 export default Bid;

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/libs/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,11 +12,11 @@ import {
 import { useAuthFormLogic } from "../hooks/useAuthFormLogic"
 import { useNavigate } from "react-router"
 
-export function SignupForm({ className,...props}: React.ComponentProps<"div">) {
+export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
   const { signUp } = useAuthFormLogic();
   const { register, handleSubmit } = signUp.form;
   const navigate = useNavigate();
-  
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0 shadow-xl">
@@ -32,41 +32,41 @@ export function SignupForm({ className,...props}: React.ComponentProps<"div">) {
 
               <div className="grid grid-cols-1 gap-4">
                 <Field>
-                    <FieldLabel htmlFor="userName">Full Name</FieldLabel>
-                    <Input id="userName" type="text" placeholder="John Doe" required {...register("userName")} />
-                    {signUp.errors.userName && <p className="text-destructive text-xs mt-1">{signUp.errors.userName.message}</p>}
+                  <FieldLabel htmlFor="userName">Full Name</FieldLabel>
+                  <Input id="userName" type="text" placeholder="John Doe" required {...register("userName")} />
+                  {signUp.errors.userName && <p className="text-destructive text-xs mt-1">{signUp.errors.userName.message}</p>}
                 </Field>
 
                 <Field>
-                    <FieldLabel htmlFor="userEmail">Email</FieldLabel>
-                    <Input id="userEmail" type="email" placeholder="name@example.com" required {...register("userEmail")} />
-                    {signUp.errors.userEmail && <p className="text-destructive text-xs mt-1">{signUp.errors.userEmail.message}</p>}
+                  <FieldLabel htmlFor="userEmail">Email</FieldLabel>
+                  <Input id="userEmail" type="email" placeholder="name@example.com" required {...register("userEmail")} />
+                  {signUp.errors.userEmail && <p className="text-destructive text-xs mt-1">{signUp.errors.userEmail.message}</p>}
                 </Field>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field>
-                        <FieldLabel htmlFor="userPhone">Phone</FieldLabel>
-                        <Input id="userPhone" type="tel" placeholder="+84 ..." required {...register("userPhone")} />
-                        {signUp.errors.userPhone && <p className="text-destructive text-xs mt-1">{signUp.errors.userPhone.message}</p>}
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="userAddress">Address</FieldLabel>
-                        <Input id="userAddress" type="text" placeholder="City, Country" required {...register("userAddress")} />
-                        {signUp.errors.userAddress && <p className="text-destructive text-xs mt-1">{signUp.errors.userAddress.message}</p>}
-                    </Field>
+                  <Field>
+                    <FieldLabel htmlFor="userPhone">Phone</FieldLabel>
+                    <Input id="userPhone" type="tel" placeholder="+84 ..." required {...register("userPhone")} />
+                    {signUp.errors.userPhone && <p className="text-destructive text-xs mt-1">{signUp.errors.userPhone.message}</p>}
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="userAddress">Address</FieldLabel>
+                    <Input id="userAddress" type="text" placeholder="City, Country" required {...register("userAddress")} />
+                    {signUp.errors.userAddress && <p className="text-destructive text-xs mt-1">{signUp.errors.userAddress.message}</p>}
+                  </Field>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field>
-                        <FieldLabel htmlFor="password">Password</FieldLabel>
-                        <Input id="password" type="password" required {...register("password")} />
-                        {signUp.errors.password && <p className="text-destructive text-xs mt-1">{signUp.errors.password.message}</p>}
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="confirmPassword">Confirm</FieldLabel>
-                        <Input id="confirmPassword" type="password" required {...register("confirmPassword")} />
-                        {signUp.errors.confirmPassword && <p className="text-destructive text-xs mt-1">{signUp.errors.confirmPassword.message}</p>}
-                    </Field>
+                  <Field>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <Input id="password" type="password" required {...register("password")} />
+                    {signUp.errors.password && <p className="text-destructive text-xs mt-1">{signUp.errors.password.message}</p>}
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="confirmPassword">Confirm</FieldLabel>
+                    <Input id="confirmPassword" type="password" required {...register("confirmPassword")} />
+                    {signUp.errors.confirmPassword && <p className="text-destructive text-xs mt-1">{signUp.errors.confirmPassword.message}</p>}
+                  </Field>
                 </div>
               </div>
 
@@ -94,9 +94,9 @@ export function SignupForm({ className,...props}: React.ComponentProps<"div">) {
 
               <FieldDescription className="text-center mt-4">
                 Already have an account?{" "}
-                <button 
+                <button
                   type="button"
-                  onClick={() => navigate('/signin')} 
+                  onClick={() => navigate('/signin')}
                   className="underline underline-offset-4 hover:text-primary transition-colors font-medium"
                 >
                   Sign In

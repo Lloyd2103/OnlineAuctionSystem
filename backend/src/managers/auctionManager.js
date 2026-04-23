@@ -1,39 +1,27 @@
 import auctionService from '../services/auctionService.js';
 import itemService from '../services/itemService.js';
 import userService from '../services/userService.js';
-
-import bidService from '../services/bidService.js';
-import sequelize from '../libs/db.js';
-
 import { IAuctionManager } from './interfaces/IAuctionManager.js';
+import { NormalAuctionFinisher } from '../domains/auction/finishers/NormalAuctionFinisher.js';
+import { BuyNowAuctionFinisher } from '../domains/auction/finishers/BuyNowAuctionFinisher.js';
+import { CanceledAuctionFinisher } from '../domains/auction/finishers/CanceledAuctionFinisher.js';
 
-import { auctionEvents, AUCTION_EVENTS } from '../domains/auction/events/AuctionEventEmitter.js';
 import { scheduleAuctionStart, scheduleAuctionEnd } from '../domains/auction/jobs/cron.js';
+import { auctionEvents, AUCTION_EVENTS } from '../domains/auction/events/AuctionEventEmitter.js';
+
 
 class AuctionManager extends IAuctionManager {
     async createAuction(userId, payload) {
         const owner = await userService.findUserById(userId);
-        if (owner.userStatus === 'banned') throw new Error('Your account has been banned');
-        const item = await itemService.getById(payload.itemId);
-        // itemService.checkApprovalStatus(item);
+        if (owner.userStatus !== 'active') {
+            throw new Error(`Your account is ${owner.userStatus}. Please wait for admin approval.`);
+        }
+        const item = await itemService.getItemById(payload.itemId);
+        itemService.checkApprovalStatus(item);
         const newAuction = await auctionService.createAuction(userId, payload);
         scheduleAuctionStart(newAuction.id, newAuction.startTime);
         scheduleAuctionEnd(newAuction.id, newAuction.endTime);
         return newAuction;
-    }
-
-    async getAuctionById(id) {
-        return await auctionService.getAuctionById(id);
-    }
-
-    async getAuctionsByOwnerId(userId) {
-        const auctions = await auctionService.getAuctionsByUser(userId);
-        return auctions.map(a => a.toJSON ? a.toJSON() : a);
-    }
-
-    async getAllAuctions() {
-        const auctions = await auctionService.getAllAuctions();
-        return auctions.map(a => a.toJSON ? a.toJSON() : a);
     }
 
     async updateAuction(id, userId, payload) {
@@ -52,48 +40,54 @@ class AuctionManager extends IAuctionManager {
         await auctionService.deleteAuction(auction);
     }
 
+    async getAuctionById(id) {
+        return await auctionService.getAuctionById(id);
+    }
+
+    async getAuctionsByOwnerId(userId, options = {}) {
+        const auctions = await auctionService.getAuctionsByUser(userId, options);
+        return auctions;
+    }
+
+    async getAllAuctions(options = {}) {
+        const auctions = await auctionService.getAllAuctions({}, options);
+        return auctions;
+    }
+
     async handleTimeEvent(auctionId, actionType) {
         if (actionType === 'START') {
             const auction = await auctionService.getAuctionById(auctionId);
             await auctionService.changeState(auction, actionType);
             auctionEvents.emit(AUCTION_EVENTS.STARTED, auction);
         } else if (actionType === 'END') {
-            const { winnerId, winningAmount } = await this.finalizeAuction(auctionId);
-
-            const auction = await auctionService.getAuctionById(auctionId);
-            auctionEvents.emit(AUCTION_EVENTS.ENDED, { auction, winnerId, winningAmount });
+            const finisher = new NormalAuctionFinisher();
+            await finisher.execute(auctionId);
         }
     }
 
+    async buyNowAuction(auctionId, userId) {
+        const buyer = await userService.findUserById(userId);
+        const finisher = new BuyNowAuctionFinisher();
+        return await finisher.execute({ auctionId, buyer });
+    }
+
+    async cancelAuction(auctionId, userId) {
+        // Có thể thêm kiểm tra quyền Admin hoặc Owner ở đây
+        const finisher = new CanceledAuctionFinisher();
+        return await finisher.execute(auctionId);
+    }
+
+    /**
+     * @deprecated Sử dụng Template Finisher thay thế
+     */
     async finalizeAuction(auctionId) {
-        const t = await sequelize.transaction();
-        try {
-            // 1. Lấy và cập nhật trạng thái Auction thành FINISHED
-            const auction = await auctionService.getAuctionById(auctionId, { transaction: t });
-            await auction.update({ auctionStatus: 'FINISHED' }, { transaction: t });
-
-            // 2. Tìm người thắng cuộc
-            const winningBid = await bidService.getHighestBid(auctionId, { transaction: t });
-            let winnerId = null;
-            let winningAmount = 0;
-            
-            if (winningBid) {
-                await winningBid.update({ isWinningBid: true }, { transaction: t });
-                winnerId = winningBid.bidderId;
-                winningAmount = winningBid.bidAmount;
-            }
-
-            // 3. Hoàn tiền cho người thua thông qua processRefunds
-            await this.processRefunds(auction, winnerId, t);
-
-            await t.commit();
-            return { winnerId, winningAmount };
-        } catch (error) {
-            await t.rollback();
-            console.error(`[AuctionManager] Error finalizing auction ${auctionId}:`, error);
-            throw error;
-        }
+        const finisher = new NormalAuctionFinisher();
+        return await finisher.execute(auctionId);
     }
+
+    
 }
 
+
 export default new AuctionManager();
+

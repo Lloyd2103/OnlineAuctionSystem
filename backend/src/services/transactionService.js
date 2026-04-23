@@ -5,22 +5,23 @@ class TransactionService {
         return await transactionRepository.create({
             ...data,
             transactionStatus: 'COMPLETED',
-            paymentMethod: data.paymentMethod || 'WALLET',
             paymentStatus: 'COMPLETED'
         }, options);
     }
 
+    async bulkCreateTransactions(dataList, options = {}) {
+        return await transactionRepository.bulkCreate(dataList, options);
+    }
+
     async updateTransaction(transaction, data, options = {}) {
-        
         return await transactionRepository.update(transaction, data, options);
     }
 
     async deleteTransaction(transaction, options = {}) {
-
         return await transactionRepository.delete(transaction, options);
     }
 
-    async findDepositStatus(userId, auctionId, options = {}) {
+    async getDepositStatus(userId, auctionId, options = {}) {
         return await transactionRepository.findOne({
             userId,
             auctionId,
@@ -35,8 +36,12 @@ class TransactionService {
         }, options);
     }
 
-    async getTransactions(userId) {
-        return await transactionRepository.findAll({ userId }, [['createdAt', 'DESC']]);
+    async getTransactions(userId, options = {}) {
+        return await transactionRepository.findAndCountAll({ userId }, { order: [['createdAt', 'DESC']], ...options });
+    }
+
+    async getAllTransactions(options = {}) {
+        return await transactionRepository.findAndCountAll({}, { order: [['createdAt', 'DESC']], ...options });
     }
 }
 

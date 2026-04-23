@@ -12,6 +12,12 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
             rejectUnauthorized: false
         }
     },
+    pool: {
+        max: 20,
+        min: 5,
+        acquire: 30000,
+        idle: 10000
+    }
 });
 
 export const connectToDatabase = async () => {

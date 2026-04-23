@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock } from 'lucide-react';
-import { formatPrice, formatRelativeTime, truncateText } from '@/lib/utils';
+import { formatPrice, formatRelativeTime, truncateText } from '@/libs/utils';
 import type { AuctionListItem } from '../types';
 
 interface MarketplaceItemProps {

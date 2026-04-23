@@ -122,7 +122,7 @@ const ProfileDropdown = ({ trigger, defaultOpen, align = "end" }: Props) => {
           </DropdownMenuGroup>
           <DropdownMenuSeparator /> */}
 
-          {user?.identifiedStatus === "unidentified" && (
+          {user?.identifiedStatus === "admin" && (
             <DropdownMenuGroup>
               {ADMIN_ITEMS.map(({ label, icon: Icon, path }) => (
                 <DropdownMenuItem

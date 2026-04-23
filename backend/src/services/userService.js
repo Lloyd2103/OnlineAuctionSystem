@@ -2,7 +2,7 @@ import userRepository from '../repositories/UserRepository.js';
 
 class UserService {
     async findUserById(userId, options = {}) {
-        const user = await userRepository.findById(userId, options);
+        const user = await userRepository.findByPk(userId, options);
         return user;
     }
 
@@ -40,15 +40,12 @@ class UserService {
         return await userRepository.save(user, options);
     }
 
+    async getBalance(userInstance) {
+        return userInstance.walletBalance;
+    }
+
     async updateBalance(userInstance, amount, options = {}) {
-        let currentBalance = Number(userInstance.walletBalance);
-        if (Number.isNaN(currentBalance)) currentBalance = 0;
-        
-        let addAmount = Number(amount);
-        if (Number.isNaN(addAmount)) addAmount = 0;
-        
-        userInstance.walletBalance = currentBalance + addAmount;
-        return await userRepository.save(userInstance, options);
+        return await userInstance.increment('walletBalance', { by: amount }, options);
     }
 
     async updateProfile(userInstance, updateData, options = {}) {
@@ -61,8 +58,31 @@ class UserService {
         return await userRepository.save(userInstance, options);
     }
 
-    async getBalance(userInstance) {
-        return userInstance.walletBalance;
+
+    async getAllUsers(options = {}) {
+        return await userRepository.findAndCountAll({}, { 
+            attributes: { exclude: ['hashedPassword'] },
+            order: [['createdAt', 'DESC']],
+            ...options 
+        });
+    }
+
+    async updateUserStatus(userId, status, options = {}) {
+        const user = await this.findUserById(userId, options);
+        if (!user) throw new Error('User not found');
+        const allowedStatuses = ['pending', 'active', 'banned'];
+        if (!allowedStatuses.includes(status)) throw new Error('Invalid status');
+        user.userStatus = status;
+        return await userRepository.save(user, options);
+    }
+
+    async updateUserRole(userId, role, options = {}) {
+        const allowedRoles = ['unidentified', 'identified', 'admin'];
+        if (!allowedRoles.includes(role)) throw new Error('Invalid role');
+        const user = await this.findUserById(userId, options);
+        if (!user) throw new Error('User not found');
+        user.identifiedStatus = role;
+        return await userRepository.save(user, options);
     }
 }
 

@@ -1,12 +1,19 @@
 import { Gavel } from 'lucide-react';
 import { AuctionCard } from '@/components/module/AuctionCard'; // Shared component
-import type { Auction } from '../../auction/types';
+import type { Auction } from '../../auction/types/auction';
+import { Pagination } from '@/components/common/Pagination';
 
 interface ProfileAuctionsProps {
     auctions: Auction[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalItems: number;
+        onPageChange: (page: number) => void;
+    };
 }
 
-export function ProfileAuctions({ auctions }: ProfileAuctionsProps) {
+export function ProfileAuctions({ auctions, pagination }: ProfileAuctionsProps) {
     return (
         <main>
             <div className="flex items-center gap-8 border-b mb-6 overflow-x-auto">
@@ -33,6 +40,16 @@ export function ProfileAuctions({ auctions }: ProfileAuctionsProps) {
                     </div>
                 )}
             </div>
+
+            {auctions.length > 0 && (
+                <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    totalItems={pagination.totalItems}
+                    itemsPerPage={6}
+                    onPageChange={pagination.onPageChange}
+                />
+            )}
         </main>
     );
 }

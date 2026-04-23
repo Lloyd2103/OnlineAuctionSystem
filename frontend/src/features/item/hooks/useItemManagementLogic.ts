@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { itemService } from '../api/itemService';
@@ -11,6 +11,8 @@ export function useItemManagementLogic() {
     const [search, setSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ totalItems: 0, totalPages: 0 });
 
     const [selected, setSelected] = useState<Set<number>>(new Set());
     const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
@@ -20,23 +22,37 @@ export function useItemManagementLogic() {
     const [auctionItem, setAuctionItem] = useState<Item | null>(null);
     const [batchAuctionOpen, setBatchAuctionOpen] = useState(false);
 
-    const fetchItems = async () => {
+    const fetchItems = useCallback(async (targetPage = page) => {
         try {
             setLoading(true);
-            const data = await itemService.fetchItems();
-            setItems(Array.isArray(data) ? data : (data?.items ?? data?.data ?? []));
+            const data = await itemService.fetchItems({
+                page: targetPage,
+                limit: 10,
+                search: search || undefined,
+                category: categoryFilter === 'All' ? undefined : categoryFilter,
+                status: statusFilter === 'All' ? undefined : statusFilter
+            });
+            setItems(data.data || []);
+            setPagination({
+                totalItems: data.totalItems,
+                totalPages: data.totalPages
+            });
         } catch {
             toast.error('Failed to load items');
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, search, categoryFilter, statusFilter]);
 
     useEffect(() => {
         if (isAuthenticated) {
-            fetchItems();
+            fetchItems(page);
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, page, fetchItems]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [search, categoryFilter, statusFilter]);
 
     const handleDelete = async () => {
         if (!deleteTarget) return;
@@ -59,14 +75,6 @@ export function useItemManagementLogic() {
         });
     };
 
-    const filteredItems = items.filter(item => {
-        const matchSearch = item.itemName?.toLowerCase().includes(search.toLowerCase()) ||
-            item.itemDescription?.toLowerCase().includes(search.toLowerCase());
-        const matchCategory = categoryFilter === 'All' || item.category === categoryFilter;
-        const matchStatus = statusFilter === 'All' || item.itemStatus === statusFilter;
-        return matchSearch && matchCategory && matchStatus;
-    });
-
     const selectedItems = items.filter(item => selected.has(item.id));
 
     return {
@@ -85,7 +93,9 @@ export function useItemManagementLogic() {
         fetchItems,
         handleDelete,
         toggleSelect,
-        filteredItems,
-        selectedItems
+        filteredItems: items, // Now server-side filtered
+        selectedItems,
+        page, setPage,
+        pagination
     };
 }

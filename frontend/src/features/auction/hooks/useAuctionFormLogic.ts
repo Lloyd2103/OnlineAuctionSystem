@@ -110,7 +110,8 @@ export function useAuctionFormLogic({ mode, auction, preSelectedItem, onSuccess 
     };
 
     const filteredPickerItems = pickerItems.filter(i =>
-        i.itemName?.toLowerCase().includes(pickerSearch.toLowerCase())
+        i.itemName?.toLowerCase().includes(pickerSearch.toLowerCase()) &&
+        (i.itemStatus === 'approved' || i.itemStatus === 'available')
     );
 
     return {

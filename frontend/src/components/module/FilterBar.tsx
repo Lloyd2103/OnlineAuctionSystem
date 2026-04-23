@@ -18,7 +18,7 @@ export function FilterBar() {
     useFilterStore()
 
   const hasActiveFilters =
-    category !== 'All' || status !== 'ALL' || priceRange[0] !== 0 || priceRange[1] !== 50000
+    category !== 'All' || status !== 'ALL' || priceRange[0] !== 0 || priceRange[1] !== 5000000
 
   return (
     <section className="border-b border-border bg-card" id="auctions">

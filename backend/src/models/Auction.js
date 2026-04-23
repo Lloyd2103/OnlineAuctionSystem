@@ -57,7 +57,12 @@ const Auction = sequelize.define('Auction', {
     }
 }, {
     tableName: 'auctions',
-    timestamps: true 
+    timestamps: true,
+    indexes: [
+        { fields: ['itemId'] },
+        { fields: ['ownerId'] },
+        { fields: ['auctionStatus'] }
+    ]
 });
 
 export default Auction;

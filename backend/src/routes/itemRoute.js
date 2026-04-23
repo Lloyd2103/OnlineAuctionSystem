@@ -1,21 +1,27 @@
 import express from 'express';
 import { 
     createItem, 
-    getAllItems, 
+    getAllItems,
+    getAllItemsAdmin,
     getItemById, 
     updateItem, 
     deleteItem, 
     updateItemStatus
 } from '../controllers/itemController.js';
 import { uploadCloud } from '../libs/cloudinary.js';
+import { protectedRoute, adminRoute } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/', uploadCloud.single('image'), createItem);
-router.get('/', getAllItems);
-router.get('/:id', getItemById);
-router.put('/:id', uploadCloud.single('image'), updateItem);
-router.delete('/:id', deleteItem);
-router.put('/:id/status', updateItemStatus);
+router.get('/', protectedRoute, getAllItems);
+router.post('/', protectedRoute, uploadCloud.single('image'), createItem);
+
+
+router.get('/all', protectedRoute, adminRoute, getAllItemsAdmin);
+
+router.get('/:id', protectedRoute, getItemById);
+router.delete('/:id', protectedRoute, deleteItem);
+router.patch('/:id', protectedRoute, uploadCloud.single('image'), updateItem);
+router.put('/:id/status', protectedRoute, adminRoute, updateItemStatus);
 
 export default router;

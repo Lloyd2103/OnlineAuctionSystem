@@ -6,7 +6,7 @@ import {
     updateAuction, 
     deleteAuction, 
     getAuctionsByOwnerId, 
-    buyNow } 
+    buyNowAuction } 
 from '../controllers/auctionController.js';
 import { protectedRoute } from '../middlewares/authMiddleware.js';
 
@@ -17,9 +17,9 @@ router.get('/:id', getAuctionById);
 
 // Protected routes
 router.post('/', protectedRoute, createAuction);
-router.put('/:id', protectedRoute, updateAuction);
+router.patch('/:id', protectedRoute, updateAuction);
 router.delete('/:id', protectedRoute, deleteAuction);
-router.post('/:id/buy', protectedRoute, buyNow);
+router.post('/:id/buy', protectedRoute, buyNowAuction);
 router.get('/user/:ownerId', protectedRoute, getAuctionsByOwnerId);
 
 

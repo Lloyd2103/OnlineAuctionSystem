@@ -3,6 +3,7 @@ import { ItemCreateForm } from './ItemCreateForm';
 import { AuctionCreateForm } from '@/features/auction';
 import { StatusBadge } from './StatusBadge';
 import { useItemManagementLogic } from '../hooks/useItemManagementLogic';
+import { Pagination } from '@/components/common/Pagination';
 
 const CATEGORIES = ['All', 'Electronics', 'Art', 'Fashion', 'Jewelry', 'Media', 'Vehicles', 'Real Estates', 'Sports', 'Collectibles', 'Other'];
 const STATUSES = ['All', 'Available', 'Pending', 'In Auction', 'Sold'];
@@ -56,7 +57,9 @@ export function ItemManagement() {
         handleDelete,
         toggleSelect,
         filteredItems,
-        selectedItems
+        selectedItems,
+        page, setPage,
+        pagination
     } = useItemManagementLogic();
 
     return (
@@ -207,6 +210,16 @@ export function ItemManagement() {
                         );
                     })}
                 </div>
+            )}
+
+            {!loading && filteredItems.length > 0 && (
+                <Pagination
+                    currentPage={page}
+                    totalPages={pagination.totalPages}
+                    totalItems={pagination.totalItems}
+                    itemsPerPage={10}
+                    onPageChange={setPage}
+                />
             )}
 
             {/* Delete Confirm */}

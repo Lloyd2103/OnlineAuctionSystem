@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router';
-import { auctionService } from '../../auction/api/auctionService'; // Import from auction feature API
+import { auctionService } from '../../auction/api/auctionService';
 import { toast } from 'sonner';
-import type { AuctionListItem, MarketplaceFilters } from '../types';
+import type { MarketplaceFilters } from '../types';
+import type { Auction } from '../../auction/types/auction';
 
 export interface UseMarketplaceLogicReturn {
-    auctions: AuctionListItem[];
+    auctions: Auction[];
     isLoading: boolean;
     viewMode: 'grid' | 'list';
     setViewMode: (mode: 'grid' | 'list') => void;
@@ -25,7 +26,7 @@ export function useMarketplaceLogic(): UseMarketplaceLogicReturn {
     const [searchParams] = useSearchParams();
     const initialSearch = searchParams.get('search') || '';
 
-    const [auctions, setAuctions] = useState<AuctionListItem[]>([]);
+    const [auctions, setAuctions] = useState<Auction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [page, setPage] = useState(1);
@@ -35,7 +36,7 @@ export function useMarketplaceLogic(): UseMarketplaceLogicReturn {
     const [filters, setFilters] = useState<MarketplaceFilters>({
         minPrice: 0,
         maxPrice: 10000,
-        status: 'HAPPENING',
+        auctionStatus: 'HAPPENING',
         sortBy: 'ending-soon',
     });
 
@@ -46,7 +47,7 @@ export function useMarketplaceLogic(): UseMarketplaceLogicReturn {
                 search: searchQuery,
                 minPrice: filters.minPrice,
                 maxPrice: filters.maxPrice,
-                status: filters.status as any,
+                status: filters.auctionStatus,
                 sortBy: filters.sortBy,
                 page,
                 limit: 12,
@@ -57,7 +58,7 @@ export function useMarketplaceLogic(): UseMarketplaceLogicReturn {
             } else {
                 setAuctions(prev => [...prev, ...(data.data || [])]);
             }
-            setHasMore(data.hasMore || false);
+            setHasMore(page < data.totalPages);
         } catch (error) {
             console.error('Failed to fetch auctions:', error);
             toast.error('Failed to load auctions');
@@ -84,7 +85,7 @@ export function useMarketplaceLogic(): UseMarketplaceLogicReturn {
         setFilters({
             minPrice: 0,
             maxPrice: 10000,
-            status: 'HAPPENING',
+            auctionStatus: 'HAPPENING',
             sortBy: 'ending-soon',
         });
         setPage(1);

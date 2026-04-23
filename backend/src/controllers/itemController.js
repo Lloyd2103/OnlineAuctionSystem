@@ -1,12 +1,13 @@
 import itemManager from '../managers/itemManager.js';
+import { getPagination, getPagingData } from '../utils/paginationHelper.js';
 
 export const createItem = async (req, res) => {
     try {
         const updateData = { ...req.body };
         if (req.files && req.files.length > 0) {
-            updateData.itemImage = req.files.map(file => file.path);
+            updateData.itemImage = req.files[0].path;
         } else if (req.file) {
-            updateData.itemImage = [req.file.path];
+            updateData.itemImage = req.file.path;
         } else {
             delete updateData.itemImage;
         }
@@ -21,10 +22,10 @@ export const updateItem = async (req, res) => {
     try {
         const updateData = { ...req.body };
         if (req.files && req.files.length > 0) {
-            updateData.itemImage = req.files.map(file => file.path);
+            updateData.itemImage = req.files[0].path;
         } else if (req.file) {
             updateData.itemImage = req.file.path;
-        } else {    
+        } else {
             delete updateData.itemImage;
         }
         await itemManager.updateItem(req.params.id, req.user.id, updateData);
@@ -45,8 +46,23 @@ export const deleteItem = async (req, res) => {
 
 export const getAllItems = async (req, res) => {
     try {
-        const items = await itemManager.getAllUserItems(req.user.id);
-        return res.status(200).json({ items });
+        const { page, limit } = req.query;
+        const { limit: l, offset } = getPagination(page, limit);
+        const result = await itemManager.getAllUserItems(req.user.id, { limit: l, offset });
+        const response = getPagingData(result, page, l);
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export const getAllItemsAdmin = async (req, res) => {
+    try {
+        const { page, limit } = req.query;
+        const { limit: l, offset } = getPagination(page, limit);
+        const result = await itemManager.getAllItems({ limit: l, offset });
+        const response = getPagingData(result, page, l);
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -54,7 +70,7 @@ export const getAllItems = async (req, res) => {
 
 export const getItemById = async (req, res) => {
     try {
-        const item = await itemManager.findItemForUser(req.params.id, req.user.id);
+        const item = await itemManager.getItemById(req.params.id);
         return res.status(200).json({ item });
     } catch (error) {
         const status = error.message === 'Item not found' ? 404 : 500;

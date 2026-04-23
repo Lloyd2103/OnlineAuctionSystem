@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import cors from 'cors';
+import compression from 'compression';
 
 import sequelize, { connectToDatabase } from './libs/db.js';
 import { initSocket } from './libs/socket.js';
@@ -16,8 +17,6 @@ import userRoute from './routes/userRoute.js';
 import itemRoute from './routes/itemRoute.js';
 import auctionRoute from './routes/auctionRoute.js';
 import transactionRoute from './routes/transactionRoute.js';
-
-import { protectedRoute } from './middlewares/authMiddleware.js';
 
 dotenv.config();
 
@@ -39,12 +38,27 @@ app.use(cors({
     credentials: true
 }));
 
+app.use(compression());
+
+// Performance Logger Middleware
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        if (duration > 500) {
+            console.warn(`[Slow Request] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+        } else {
+            console.log(`[Perf] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+        }
+    });
+    next();
+});
+
 
 // Public routes
 app.use('/api/auth', authRoute);
 app.use('/api/auctions', auctionRoute);
 // Private routes
-app.use(protectedRoute);
 app.use('/api/users', userRoute);
 app.use('/api/items', itemRoute);
 app.use('/api/transactions', transactionRoute);
@@ -52,8 +66,9 @@ app.use('/api/transactions', transactionRoute);
 
 connectToDatabase().then(async () => {
     try {
-        await sequelize.sync({ alter: true });
-        console.log('Database synchronized successfully');
+        // Đồng bộ schema với database
+        // await sequelize.sync({ alter: true });
+        // console.log('Database synchronized successfully');
 
         httpServer.listen(PORT, IP, async () => {
             console.log(`Server is running on http://${IP}:${PORT}`);

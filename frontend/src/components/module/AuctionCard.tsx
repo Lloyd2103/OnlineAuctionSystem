@@ -1,6 +1,6 @@
 import { Users, Clock } from 'lucide-react'
 import { useCountdown } from '@/hooks/useCountdown'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/libs/utils'
 import type { Auction } from '@/features/auction/types/auction'
 import { useNavigate } from 'react-router'
 
@@ -94,9 +94,18 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
               {formatCurrency(Number(auction.startingPrice))}
             </p>
           </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Current Price </p>
+            <p
+              className="text-lg font-bold text-bid"
+              style={{ fontFamily: 'var(--font-heading)' }}
+            >
+              {/* 6. SỬA: Dùng startingPrice và ép kiểu Number */}
+              {formatCurrency(Number(auction.highestBid?.bidAmount ?? auction.startingPrice))}
+            </p>
+          </div>
           <button
             onClick={handlePlaceBid}
-            // disabled={(timeLeft.total ?? 0) <= 0}
             className="rounded-lg bg-bid px-4 py-2 text-xs font-semibold text-bid-foreground transition-all hover:bg-bid/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             View

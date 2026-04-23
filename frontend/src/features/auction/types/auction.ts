@@ -1,6 +1,6 @@
 
 export type AuctionCategory = 'All' | 'Art' | 'Electronics' | 'Fashion' | 'Jewelry' | 'Media' | 'Vehicles' | 'Real Estates' | 'Sports'
-export type AuctionStatus = 'ALL' | 'ACTIVE' | 'UPCOMING' | 'ENDED'
+export type AuctionStatus = "ALL" | "ACTIVE" | "UPCOMING" | "ENDED" | "FINISHED" | "COMPLETED"
 
 
 export interface Auction {
@@ -29,6 +29,14 @@ export interface Auction {
         category: string;
         attributes: Record<string, string>;
     };
+    highestBid?: {
+        id: number;
+        bidderId: number;
+        bidAmount: number;
+        bidder?: {
+            userName: string;
+        };
+    } | null;
 }
 
 export interface AuctionState {
@@ -36,6 +44,9 @@ export interface AuctionState {
     auctions: Auction[]
     endingSoonAuctions: Auction[];
     newlyListedAuctions: Auction[];
+    endedAuctions: Auction[];
+    liveAuctions: Auction[];
+    upcomingAuctions: Auction[];
     loading: boolean
     createAuction: (itemId: number, title: string, description: string, startTime: Date, endTime: Date, startingPrice: number, incrementPrice: number, instantBuyPrice: number, mandatoryDeposit: number) => Promise<void>;
     updateAuction: (id: number, itemId: number, title: string, description: string, auctionStatus: string, startTime: Date, endTime: Date, startingPrice: number, incrementPrice: number, instantBuyPrice: number, mandatoryDeposit: number) => Promise<void>;

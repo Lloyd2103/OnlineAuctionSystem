@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sessionRepository from '../repositories/SessionRepository.js';
+
 class AuthService {
     constructor() {
         this.ACCESS_TOKEN_TTL = '20m';

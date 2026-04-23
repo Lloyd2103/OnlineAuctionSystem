@@ -101,8 +101,9 @@ export function useItemFormLogic({ mode, item, onSuccess }: UseItemFormLogicProp
                 toast.success('Item updated successfully!');
             }
             onSuccess();
-        } catch (error: any) {
-            toast.error(error.response?.data?.message ?? (mode === 'create' ? 'Failed to create item' : 'Failed to update item'));
+        } catch (error) {
+            console.log(error);
+            toast.error(mode === 'create' ? 'Failed to create item' : 'Failed to update item');
         } finally {
             setLoading(false);
         }
@@ -111,22 +112,18 @@ export function useItemFormLogic({ mode, item, onSuccess }: UseItemFormLogicProp
     return {
         loading,
         form,
-        image: {
-            preview: imagePreview,
-            setPreview: setImagePreview,
-            setFile: setImageFile,
-            ref: fileInputRef,
-            dragOver,
-            setDragOver,
-            handleFile: handleImageFile,
-            handleDrop
-        },
-        attributes: {
-            list: attributes,
-            change: handleAttrChange,
-            add: addAttribute,
-            remove: removeAttribute
-        },
+        imagePreview,
+        setImagePreview,
+        setImageFile,
+        fileInputRef,
+        dragOver,
+        setDragOver,
+        handleImageFile,
+        handleDrop,
+        attributes,
+        handleAttrChange,
+        addAttribute,
+        removeAttribute,
         handleFieldChange,
         handleSubmit
     };

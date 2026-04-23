@@ -11,9 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/libs/utils";
 import { type LucideIcon, Bell, Star, TrendingUp } from "lucide-react";
-import { io } from "socket.io-client";
 import { useAuthStore } from "@/features/auth/stores/authStore";
 import { formatDistanceToNow } from "date-fns";
 
@@ -52,34 +51,8 @@ const NotificationDropdown = ({
   const { isAuthenticated, accessToken } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated || !accessToken) return;
-
-    const URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
-
-    const newSocket = io(URL, {
-      autoConnect: true,
-      transports: ['websocket', 'polling'],
-      auth: { token: accessToken }
-    });
-
-    newSocket.on("new_notification", (data) => {
-      setNotifications((prev) => [
-        {
-          id: Math.random().toString(), // Tạm thời dùng random ID
-          type: data.type || "INFO",
-          title: data.title || "Notification",
-          message: data.message || "",
-          timestamp: new Date(data.timestamp || new Date()),
-          isRead: false,
-        },
-        ...prev,
-      ]);
-    });
-
-    return () => {
-      newSocket.off("new_notification");
-      newSocket.disconnect();
-    };
+    // Socket connection removed for minimalist auction-only setup.
+    // In the future, notifications can be fetched via REST API here.
   }, [isAuthenticated, accessToken]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;

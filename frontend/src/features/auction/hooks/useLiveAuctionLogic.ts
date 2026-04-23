@@ -5,7 +5,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { toast } from 'sonner';
 import { auctionService } from '@/features/auction/api/auctionService';
 import { transactionService } from '@/features/transaction/api/transactionService';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/libs/utils';
 import type { Bid, Auction } from '@/features/auction/types';
 import type { User } from '@/features/auth/types/user';
 
@@ -124,7 +124,7 @@ export function useLiveAuctionLogic(id: string | undefined): UseLiveAuctionLogic
 
     const currentPrice = useMemo(() => {
         if (!auction) return 0;
-        const highestBid = auction.bids?.length 
+        const highestBid = auction.bids?.length
             ? Math.max(...auction.bids.map(b => b.bidAmount))
             : auction.startingPrice;
         return Number(highestBid);

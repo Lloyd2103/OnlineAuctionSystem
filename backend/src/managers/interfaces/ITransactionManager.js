@@ -1,5 +1,4 @@
 export class ITransactionManager {
-
     async deposit(userInstance, amount) {
         throw new Error('Not implemented');
     }
@@ -9,6 +8,22 @@ export class ITransactionManager {
     }
 
     async history(userId) {
+        throw new Error('Not implemented');
+    }
+
+    async payDeposit(bidderId, auctionId) {
+        throw new Error('Not implemented');
+    }
+
+    async payWinningFee(winnerId, auctionId) {
+        throw new Error('Not implemented');
+    }
+
+    async refundDeposit(bidderId, auctionId) {
+        throw new Error('Not implemented');
+    }
+
+    async getTransactionHistory(userId, options) {
         throw new Error('Not implemented');
     }
 }

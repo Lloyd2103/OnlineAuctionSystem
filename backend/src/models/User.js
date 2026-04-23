@@ -24,7 +24,7 @@ const User = sequelize.define('User', {
     userStatus: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'active'
+        defaultValue: 'pending'
     },
     identifiedStatus: {
         type: DataTypes.STRING,
@@ -56,7 +56,10 @@ const User = sequelize.define('User', {
     }
 }, {
     tableName: 'users',
-    timestamps: true 
+    timestamps: true,
+    indexes: [
+        { fields: ['userStatus'] }
+    ]
 });
 
 export default User;

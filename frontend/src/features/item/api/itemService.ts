@@ -1,8 +1,8 @@
-import api from "@/lib/axios";
+import api from "@/libs/axios";
 
 export const itemService = {
-    fetchItems: async () => {
-        const response = await api.get('/items');
+    fetchItems: async (params?: Record<string, string | number | boolean | undefined>) => {
+        const response = await api.get('/items', { params });
         return response.data;
     },
     fetchItemById: async (id: number) => {
@@ -19,19 +19,19 @@ export const itemService = {
         formData.append('price', price.toString());
         formData.append('category', category);
         formData.append('attributes', JSON.stringify(attributes));
-        
+
         if (imageFile) {
-            formData.append('image', imageFile); 
+            formData.append('image', imageFile);
         }
 
-        const response = await api.post('/items', formData, { 
-            withCredentials: true 
+        const response = await api.post('/items', formData, {
+            withCredentials: true
         });
 
         return response.data.item;
     },
 
-    updateItem: async (id: number, itemName: string, itemDescription: string, itemAddress: string, itemStatus: string, imageFile: File | string, price: number, category: string, attributes: Record<string, string | number>) =>{
+    updateItem: async (id: number, itemName: string, itemDescription: string, itemAddress: string, itemStatus: string, imageFile: File | string, price: number, category: string, attributes: Record<string, string | number>) => {
         const formData = new FormData();
         formData.append('itemName', itemName);
         formData.append('itemDescription', itemDescription);
@@ -40,12 +40,12 @@ export const itemService = {
         formData.append('price', price.toString());
         formData.append('category', category);
         formData.append('attributes', JSON.stringify(attributes));
-        
+
         if (imageFile) {
-            formData.append('image', imageFile); 
+            formData.append('image', imageFile);
         }
-        
-        const response = await api.put(`/items/${id}`, formData, {
+
+        const response = await api.patch(`/items/${id}`, formData, {
             withCredentials: true,
             headers: {
                 "Content-Type": "multipart/form-data",
@@ -59,8 +59,8 @@ export const itemService = {
         return response.data;
     },
 
-    fetchMyItems: async () => {
-        const response = await api.get('/items/my');
+    fetchMyItems: async (params?: Record<string, string | number | boolean | undefined>) => {
+        const response = await api.get('/items/my', { params });
         return response.data;
     },
 

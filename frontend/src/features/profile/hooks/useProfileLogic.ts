@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/features/auth/stores/authStore';
 import { authService } from '../../auth/api/authService';
 import { auctionService } from '../../auction/api/auctionService';
+import { userAdminService } from '../api/userAdminService';
 import { toast } from 'sonner';
 import type { User } from '@/features/auth/types/user';
-import type { Auction } from '../../auction/types';
+import type { Auction } from '../../auction/types/auction';
 
 export function useProfileLogic(urlId?: string) {
     const currentUser = useAuthStore((state) => state.user);
@@ -13,10 +14,12 @@ export function useProfileLogic(urlId?: string) {
     const [profileUser, setProfileUser] = useState<User | null>(currentUser);
     const isOwnProfile = !urlId || (currentUser?.id && urlId === currentUser.id.toString());
 
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [userAuctions, setUserAuctions] = useState<Auction[]>([]);
+    const [auctionsPage, setAuctionsPage] = useState(1);
+    const [auctionsMeta, setAuctionsMeta] = useState({ totalItems: 0, totalPages: 0 });
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const loadProfile = useCallback(async () => {
         try {
@@ -24,91 +27,74 @@ export function useProfileLogic(urlId?: string) {
                 const fetchedUser = await authService.fetchUserById(urlId);
                 if (fetchedUser) {
                     setProfileUser(fetchedUser);
-                    setPreviewUrl(fetchedUser.userImage || null);
                 }
             } else {
                 setProfileUser(currentUser);
-                setPreviewUrl(currentUser?.userImage || null);
             }
         } catch (error) {
             console.error("Failed to load profile:", error);
         }
     }, [urlId, currentUser, isOwnProfile]);
 
-    const loadAuctions = useCallback(async () => {
+    const loadAuctions = useCallback(async (page = auctionsPage) => {
         const idToFetch = urlId || currentUser?.id;
         if (idToFetch) {
             try {
-                const data = await auctionService.fetchAuctionsByOwnerId(idToFetch);
-                setUserAuctions(data.auctions || []);
+                const result = await auctionService.fetchAuctionsByOwnerId(idToFetch, { page, limit: 6 });
+                setUserAuctions(result.data || []);
+                setAuctionsMeta({ totalItems: result.totalItems, totalPages: result.totalPages });
             } catch (error) {
                 console.error("Failed to load auctions:", error);
             }
         }
-    }, [urlId, currentUser?.id]);
+    }, [urlId, currentUser?.id, auctionsPage]);
 
     useEffect(() => {
         loadProfile();
         loadAuctions();
     }, [loadProfile, loadAuctions]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (previewUrl && previewUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(previewUrl);
-            }
-            setSelectedFile(file);
-            const objectUrl = URL.createObjectURL(file);
-            setPreviewUrl(objectUrl);
-        }
-    };
-
-    const handleUpload = async () => {
-        if (!selectedFile || !profileUser) return;
+    const handleUpdateProfile = async (data: { userName: string; userPhone: string; userAddress: string; userImage?: File }) => {
         try {
             setLoading(true);
-            const response = await authService.updateProfile({
-                userName: profileUser.userName || '',
-                userEmail: profileUser.userEmail || '',
-                userPhone: profileUser.userPhone || '',
-                userAddress: profileUser.userAddress || '',
-                userStatus: profileUser.userStatus || '',
-                userImage: selectedFile
-            });
+            const response = await authService.updateProfile(data);
             if (response) {
                 setUser(response);
-                toast.success("Profile image updated!");
-                setSelectedFile(null);
+                setProfileUser(response);
             }
         } catch (error) {
-            console.error("Upload failed", error);
-            toast.error("Failed to upload image.");
+            console.error("Update profile failed", error);
+            throw error;
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCancelImage = () => {
-        if (previewUrl && previewUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(previewUrl);
+    const handleSubmitRating = async (targetId: number, value: number) => {
+        try {
+            await userAdminService.submitRating(targetId, value);
+            toast.success('Rating submitted successfully!');
+            loadProfile();
+        } catch (error) {
+            console.error('Failed to submit rating:', error);
+            toast.error('Failed to submit rating.');
         }
-        setSelectedFile(null);
-        setPreviewUrl(profileUser?.userImage || null);
     };
 
     return {
         profileUser,
         isOwnProfile,
         userAuctions,
-        image: {
-            previewUrl,
-            selectedFile,
-            loading,
-            handleFileChange,
-            handleUpload,
-            handleCancel: handleCancelImage
-        },
+        auctionsPage,
+        setAuctionsPage,
+        auctionsMeta,
+        loading,
+        showRatingModal,
+        setShowRatingModal,
+        showEditModal,
+        setShowEditModal,
+        handleUpdateProfile,
+        handleSubmitRating,
         refreshProfile: loadProfile,
         refreshAuctions: loadAuctions
     };

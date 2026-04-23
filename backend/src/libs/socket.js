@@ -15,13 +15,13 @@ export const initSocket = (server) => {
     io.use(socketAuthMiddleware);
 
     io.on('connection', (socket) => {
-        console.log(`User: ${socket.user.userId} authenticated and connected`);
+        const userId = socket.user.userId;
+        console.log(`Socket connection: User ${userId} authenticated`);
 
-        socket.join(`User: ${socket.user.userId}`);
         registerAuctionHandlers(io, socket);
 
         socket.on('disconnect', () => {
-            console.log('User disconnected:', socket.id);
+            console.log(`Socket disconnection: User ${userId}`);
         });
     });
 

@@ -52,7 +52,11 @@ const Transaction = sequelize.define('Transaction', {
     },
 }, {
     tableName: 'transactions',
-    timestamps: true
+    timestamps: true,
+    indexes: [
+        { fields: ['userId'] },
+        { fields: ['auctionId'] }
+    ]
 });
 
 export default Transaction;

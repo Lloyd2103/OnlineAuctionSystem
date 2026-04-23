@@ -10,7 +10,13 @@ export function ProfileView() {
         profileUser,
         isOwnProfile,
         userAuctions,
-        image,
+        auctionsPage,
+        setAuctionsPage,
+        auctionsMeta,
+        showEditModal,
+        setShowEditModal,
+        handleUpdateProfile,
+        handleSubmitRating,
     } = useProfileLogic(urlId);
 
     return (
@@ -18,7 +24,10 @@ export function ProfileView() {
             <ProfileHeader 
                 user={profileUser} 
                 isOwnProfile={Boolean(isOwnProfile)} 
-                image={image} 
+                showEditModal={showEditModal}
+                setShowEditModal={setShowEditModal}
+                onUpdateProfile={handleUpdateProfile}
+                onSubmitRating={!isOwnProfile ? handleSubmitRating : undefined}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -30,7 +39,13 @@ export function ProfileView() {
                 </div>
                 <div className="lg:col-span-8">
                     <ProfileAuctions 
-                        auctions={userAuctions} 
+                        auctions={userAuctions}
+                        pagination={{
+                            currentPage: auctionsPage,
+                            totalPages: auctionsMeta.totalPages,
+                            totalItems: auctionsMeta.totalItems,
+                            onPageChange: setAuctionsPage
+                        }}
                     />
                 </div>
             </div>

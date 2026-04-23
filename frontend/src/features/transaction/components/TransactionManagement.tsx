@@ -1,5 +1,5 @@
 import { Wallet, RefreshCw } from 'lucide-react';
-import { fmtPrice } from '@/lib/utils';
+import { fmtPrice } from '@/libs/utils';
 import { OverviewTab } from './OverviewTab';
 import { TransactionsTab } from './TransactionsTab';
 import { DepositWithdrawCard } from './DepositWithdrawCard';
@@ -74,11 +74,10 @@ export function TransactionManagement() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                            activeTab === tab.id
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id
                                 ? 'bg-card text-foreground shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground'
-                        }`}
+                            }`}
                     >
                         {tab.icon} {tab.label}
                     </button>
@@ -89,7 +88,7 @@ export function TransactionManagement() {
             {activeTab === 'overview' && <OverviewTab stats={stats} loading={loading} />}
 
             {activeTab === 'transactions' && (
-                <TransactionsTab 
+                <TransactionsTab
                     transactions={filter.paginatedTransactions}
                     loading={loading}
                     filter={filter}
@@ -100,7 +99,7 @@ export function TransactionManagement() {
 
             {activeTab === 'payments' && (
                 <div className="space-y-5">
-                    <AuctionPaymentForm 
+                    <AuctionPaymentForm
                         auctionId={payAuctionForm.auctionId}
                         onAuctionIdChange={payAuctionForm.setAuctionId}
                         amount={payAuctionForm.amount}
@@ -115,12 +114,12 @@ export function TransactionManagement() {
                             <h2 className="font-bold text-base">Auction Payment History</h2>
                             <span className="text-xs text-muted-foreground">{auctionPayments.length} payment{auctionPayments.length !== 1 ? 's' : ''}</span>
                         </div>
-                        <TransactionTable 
+                        <TransactionTable
                             transactions={auctionPayments}
                             loading={loading}
                             page={1}
                             pageCount={1}
-                            onPageChange={() => {}}
+                            onPageChange={() => { }}
                             totalResults={auctionPayments.length}
                         />
                     </div>
@@ -128,7 +127,7 @@ export function TransactionManagement() {
             )}
 
             {activeTab === 'deposit' && (
-                <DepositWithdrawCard 
+                <DepositWithdrawCard
                     balance={balance}
                     depositAmount={depositAmount}
                     onDepositAmountChange={setDepositAmount}

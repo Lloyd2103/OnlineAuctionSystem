@@ -1,5 +1,5 @@
 import { User } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/libs/utils';
 import type { Bid } from '../types';
 
 interface BidItemProps {
@@ -10,13 +10,12 @@ interface BidItemProps {
 export function BidItem({ bid, isCurrentUser }: BidItemProps) {
     return (
         <div
-            className={`p-4 rounded-2xl flex justify-between items-center transition-all ${
-                isCurrentUser
+            className={`p-4 rounded-2xl flex justify-between items-center transition-all ${isCurrentUser
                     ? 'bg-blue-50 border border-blue-200'
                     : bid.isWinningBid
                         ? 'bg-green-50 border border-green-200 scale-[1.02] shadow-sm'
                         : 'bg-gray-50 border border-transparent'
-            }`}
+                }`}
         >
             <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">

@@ -9,7 +9,9 @@ class UserRepository extends RepositoryInterface {
 
 	async findAll(where = {}, options = {}) { return await User.findAll({ where, ...options }); }
 	async findOne(where = {}, options = {}) { return await User.findOne({ where, ...options }); }
-	async findById(id, options = {}) { return await User.findByPk(id, options); }
+	async findByPk(id, options = {}) { return await User.findByPk(id, options); }
+
+	async findAndCountAll(where = {}, options = {}) { return await User.findAndCountAll({ where, ...options }); }
 }
 
 export default new UserRepository();

@@ -6,5 +6,7 @@ export const auctionEvents = new AuctionEventEmitter();
 
 export const AUCTION_EVENTS = {
     STARTED: 'AUCTION_STARTED',
-    ENDED: 'AUCTION_ENDED'
+    ENDED: 'AUCTION_ENDED',
+    BID_PLACED: 'BID_PLACED'
 };
+

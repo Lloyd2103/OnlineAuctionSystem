@@ -1,15 +1,18 @@
 import cron from 'node-cron';
-import auctionManager from '../../../managers/auctionManager.js';
 import auctionService from '../../../services/auctionService.js';
+
 
 const scheduledJobs = new Map();
 
 export const initSystemJobs = async () => {
     try {
         console.log('[Cron] Initializing auction system jobs...');
-        const auctions = await auctionService.getAllAuctions({ where: { auctionStatus: ['UPCOMING', 'ACTIVE'] } });
+        const auctions = await auctionService.getAllAuctions(
+            { auctionStatus: ['UPCOMING', 'ACTIVE'] },
+            { limit: 1000 }
+        );
 
-        for (const auction of auctions) {
+        for (const auction of auctions.rows) {
             if (auction.auctionStatus === 'UPCOMING') {
                 await scheduleAuctionStart(auction.id, auction.startTime);
                 await scheduleAuctionEnd(auction.id, auction.endTime);
@@ -30,10 +33,12 @@ function dateToCron(date) {
 }
 
 export const scheduleAuctionStart = async (auctionId, startTime) => {
+    const { default: auctionManager } = await import('../../../managers/auctionManager.js');
     if (new Date(startTime) <= new Date()) {
         await auctionManager.handleTimeEvent(auctionId, 'START').catch(console.error);
         return;
     }
+
 
     const cronTime = dateToCron(startTime);
     const job = cron.schedule(cronTime, async () => {
@@ -52,10 +57,12 @@ export const scheduleAuctionStart = async (auctionId, startTime) => {
 };
 
 export const scheduleAuctionEnd = async (auctionId, endTime) => {
+    const { default: auctionManager } = await import('../../../managers/auctionManager.js');
     if (new Date(endTime) <= new Date()) {
         await auctionManager.handleTimeEvent(auctionId, 'END').catch(console.error);
         return;
     }
+
 
     const cronTime = dateToCron(endTime);
     const job = cron.schedule(cronTime, async () => {

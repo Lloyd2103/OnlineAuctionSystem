@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTimeRemaining } from '@/lib/utils'
+import { getTimeRemaining } from '@/libs/utils'
 
 /**
  * Countdown hook that works with both Date objects and ISO date strings.

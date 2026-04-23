@@ -7,9 +7,11 @@ class ItemRepository extends RepositoryInterface {
     async save(itemInstance, options = {}) { return await itemInstance.save(options); }
     async destroy(itemInstance, options = {}) { return await itemInstance.destroy(options); }
 
-    async findById(id, options = {}) { return await Item.findByPk(id, options); }
+    async findByPk(id, options = {}) { return await Item.findByPk(id, options); }
     async findAll(where = {}, options = {}) { return await Item.findAll({ where, ...options }); }
     async findOne(where = {}, options = {}) { return await Item.findOne({ where, ...options }); }
+
+    async findAndCountAll(where = {}, options = {}) { return await Item.findAndCountAll({ where, ...options }); }
 }
 
 export default new ItemRepository();

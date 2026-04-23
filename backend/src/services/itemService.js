@@ -14,24 +14,25 @@ class ItemService {
         }
     }
 
-    async create(userId, itemData) {
+    async createItem(userId, itemData) {
         this.validateItemAttributes(itemData);
         const data = {
             ...itemData,
             userId,
+            itemStatus: 'pending',
             attributes: itemData.attributes || {}
         };
         return await itemRepository.create(data);
     }
 
-    async getById(id, options = {}) {
-        const item = await itemRepository.findById(id, options);
+    async getItemById(id, options = {}) {
+        const item = await itemRepository.findByPk(id, options);
         if (!item) throw new Error('Item not found');
         return item;
     }
 
     async getItemsByUserId(userId, options = {}) {
-        return await itemRepository.findAll({ userId }, options);
+        return await itemRepository.findAndCountAll({ userId }, options);
     }
 
     async updateFields(itemInstance, updateData) {
@@ -53,8 +54,12 @@ class ItemService {
         return await itemRepository.save(itemInstance);
     }
 
-    async delete(itemInstance) {
+    async deleteItem(itemInstance) {
         return await itemRepository.destroy(itemInstance);
+    }
+
+    async getAllItems(options = {}) {
+        return await itemRepository.findAndCountAll({}, { order: [['createdAt', 'DESC']], ...options });
     }
 }
 

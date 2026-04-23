@@ -9,7 +9,9 @@ class BidRepository extends RepositoryInterface {
 
     async findAll(where = {}, order = [], options = {}) { return await Bid.findAll({ where, order, ...options }); }
     async findOne(where = {}, order = [], options = {}) { return await Bid.findOne({ where, order, ...options }); }
-    async findById(id, options = {}) { return await Bid.findByPk(id, options); }
+    async findByPk(id, options = {}) { return await Bid.findByPk(id, options); }
+
+    async findAndCountAll(where = {}, options = {}) { return await Bid.findAndCountAll({ where, ...options }); }
 }
 
 export default new BidRepository();

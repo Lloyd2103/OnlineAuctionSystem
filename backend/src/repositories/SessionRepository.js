@@ -8,7 +8,7 @@ class SessionRepository {
 
 	async findAll(where = {}, options = {}) { return await Session.findAll({ where, ...options }); }
 	async findOne(where = {}, options = {}) { return await Session.findOne({ where, ...options }); }
-	async findById(id, options = {}) { return await Session.findByPk(id, options); }
+	async findByPk(id, options = {}) { return await Session.findByPk(id, options); }
 
 	async deleteByRefreshToken(refreshToken, options = {}) { return await Session.destroy({ where: { refreshToken }, ...options }); }
 	async findByRefreshToken(refreshToken, options = {}) { return await Session.findOne({ where: { refreshToken }, ...options }); }

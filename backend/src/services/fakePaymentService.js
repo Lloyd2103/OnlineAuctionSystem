@@ -11,7 +11,7 @@ class FakePaymentService {
                 } else {
                     reject(new Error('Thanh toán bị từ chối bởi ngân hàng/ví điện tử'));
                 }
-            }, 1000);
+            }, 10);
         });
     }
 
@@ -23,7 +23,7 @@ class FakePaymentService {
                     transactionId: `RFFAKE${Date.now()}`,
                     message: 'Hoàn tiền thành công'
                 });
-            }, 800);
+            }, 10);
         });
     }
 }

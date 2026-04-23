@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 
 import { useAuctionStore } from '@/features/auction/stores/auctionStore'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/libs/utils'
 
 function CountdownUnit({ value, label }: { value: number; label: string }) {
   return (
@@ -22,9 +22,11 @@ function CountdownUnit({ value, label }: { value: number; label: string }) {
 
 export function Hero() {
   const navigate = useNavigate()
-  const auctions = useAuctionStore((state) => state.auctions)
-  const loading = useAuctionStore((state) => state.loading)
-  const fetchAllAuctions = useAuctionStore((state) => state.fetchAllAuctions)
+  const liveAuctions = useAuctionStore((state) => state.liveAuctions);
+  const upcomingAuctions = useAuctionStore((state) => state.upcomingAuctions);
+  const auctions = useAuctionStore((state) => state.auctions);
+  const loading = useAuctionStore((state) => state.loading);
+  const fetchAllAuctions = useAuctionStore((state) => state.fetchAllAuctions);
 
   useEffect(() => {
     if (auctions.length === 0) {
@@ -32,7 +34,12 @@ export function Hero() {
     }
   }, [fetchAllAuctions, auctions.length]);
 
-  const featuredAuction = auctions.find(auction => auction.auctionStatus === 'ACTIVE');
+  // 1. Ưu tiên lấy cái đầu tiên của LIVE (đã được store lọc và sort theo sắp kết thúc)
+  // 2. Nếu không có LIVE, lấy cái đầu tiên của UPCOMING (đã được store lọc và sort theo sắp bắt đầu)
+  // 3. Cuối cùng fallback về cái đầu tiên trong list auctions bất kỳ
+  const featuredAuction = liveAuctions[0] || upcomingAuctions[0] || auctions[0] || null;
+
+  // Countdown đến thời điểm kết thúc (nếu live) hoặc mục tiêu khác tùy ý
   const timeLeft = useCountdown(featuredAuction?.endTime ?? new Date());
 
   if (loading && auctions.length === 0) {
@@ -80,15 +87,27 @@ export function Hero() {
                   className="h-full w-full object-cover"
                   crossOrigin="anonymous"
                 />
-                {/* Live badge */}
-                <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-live px-3 py-1.5 shadow-lg">
-                  <span className="h-2 w-2 rounded-full bg-live-foreground animate-pulse-live" />
-                  <span className="text-xs font-semibold text-live-foreground uppercase tracking-wider">Live</span>
+                {/* Status badge */}
+                <div className={`absolute left-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 shadow-lg ${
+                  featuredAuction.auctionStatus === 'ACTIVE' 
+                    ? 'bg-live text-live-foreground' 
+                    : featuredAuction.auctionStatus === 'UPCOMING'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-muted text-muted-foreground'
+                }`}>
+                  {featuredAuction.auctionStatus === 'ACTIVE' && (
+                    <span className="h-2 w-2 rounded-full bg-live-foreground animate-pulse-live" />
+                  )}
+                  <span className="text-xs font-semibold uppercase tracking-wider">
+                    {featuredAuction.auctionStatus === 'ACTIVE' ? 'Live' : featuredAuction.auctionStatus}
+                  </span>
                 </div>
                 {/* Bid count overlay */}
                 <div className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-foreground/80 px-3 py-1.5 backdrop-blur-sm">
                   <Users className="h-3.5 w-3.5 text-primary-foreground" />
-                  <span className="text-xs font-medium text-primary-foreground">{featuredAuction.incrementPrice} bids</span>
+                  <span className="text-xs font-medium text-primary-foreground">
+                    {featuredAuction.bids?.length ?? 0} bids
+                  </span>
                 </div>
               </div>
 

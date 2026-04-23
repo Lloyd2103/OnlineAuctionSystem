@@ -1,19 +1,20 @@
-import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
-import { fmtDate, fmtPrice } from '@/lib/utils';
+import { ExternalLink } from 'lucide-react';
+import { fmtDate, fmtPrice } from '@/libs/utils';
 import { TypeIcon } from './TypeIcon';
 import { StatusBadge } from './StatusBadge';
 import type { Transaction } from '../types';
+import { Pagination } from '@/components/common/Pagination';
 
 interface TransactionTableProps {
     transactions: Transaction[];
     loading: boolean;
     page: number;
-    pageCount: number;
+    totalPages: number;
     onPageChange: (page: number) => void;
-    totalResults: number;
+    totalItems: number;
 }
 
-export function TransactionTable({ transactions, loading, page, pageCount, onPageChange, totalResults }: TransactionTableProps) {
+export function TransactionTable({ transactions, loading, page, totalPages, onPageChange, totalItems }: TransactionTableProps) {
     if (loading) {
         return (
             <div className="p-8 space-y-3">
@@ -79,24 +80,13 @@ export function TransactionTable({ transactions, loading, page, pageCount, onPag
                 </table>
             </div>
 
-            {/* Pagination */}
-            {pageCount > 1 && (
-                <div className="px-5 py-4 border-t flex items-center justify-between bg-muted/10">
-                    <p className="text-xs text-muted-foreground font-medium">Showing page {page} of {pageCount} ({totalResults} total results)</p>
-                    <div className="flex gap-2">
-                        <button
-                            disabled={page === 1}
-                            onClick={() => onPageChange(page - 1)}
-                            className="p-2 rounded-lg border bg-card hover:bg-muted transition-colors disabled:opacity-50"
-                        ><ArrowLeft size={16} /></button>
-                        <button
-                            disabled={page === pageCount}
-                            onClick={() => onPageChange(page + 1)}
-                            className="p-2 rounded-lg border bg-card hover:bg-muted transition-colors disabled:opacity-50"
-                        ><ArrowRight size={16} /></button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={10}
+                onPageChange={onPageChange}
+            />
         </div>
     );
 }

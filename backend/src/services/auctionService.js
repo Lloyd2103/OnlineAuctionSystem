@@ -56,22 +56,42 @@ class AuctionService {
         return await auctionRepository.destroy({ id: auction.id }, options);
     }
 
-    async getAllAuctions() {
-        const auctions = await auctionRepository.findAll({}, {
+    async getAllAuctions(where = {}, options = {}) {
+        const { limit = 50, offset = 0 } = options;
+        const result = await auctionRepository.findAndCountAll(where, {
+            ...options,
+            limit,
+            offset,
             include: [
                 {
-                    model: Item, // Model bạn muốn join
-                    as: 'item',  // Phải khớp với "as" lúc khai báo association
+                    model: Item,
+                    as: 'item',
                     attributes: ['itemName', 'itemDescription', 'itemImage', 'itemAddress', 'category', 'attributes', 'itemStatus']
+                },
+                {
+                    model: Bid,
+                    as: 'bids',
+                    separate: true,
+                    order: [['bidAmount', 'DESC']],
+                    limit: 1,
+                    include: [{ model: User, as: 'bidder', attributes: ['userName'] }]
                 }
-            ]
+            ],
+            distinct: true
         });
-        if (!auctions) throw new Error('Auctions not found');
-        return auctions;
+
+        result.rows = result.rows.map(auction => {
+            const item = auction.toJSON();
+            item.highestBid = item.bids && item.bids.length > 0 ? item.bids[0] : null;
+            delete item.bids;
+            return item;
+        });
+
+        return result;
     }
 
     async getAuctionById(id) {
-        const auction = await auctionRepository.findById(id, {
+        const auction = await auctionRepository.findByPk(id, {
             include: [
                 {
                     model: Item,
@@ -89,8 +109,12 @@ class AuctionService {
         return auction;
     }
 
-    async getAuctionsByUser(userId) {
-        return await auctionRepository.findAll({ ownerId: userId }, {
+    async getAuctionsByUser(userId, options = {}) {
+        const { limit = 50, offset = 0 } = options;
+        const result = await auctionRepository.findAndCountAll({ ownerId: userId }, {
+            ...options,
+            limit,
+            offset,
             include: [
                 {
                     model: Item,
@@ -100,14 +124,26 @@ class AuctionService {
                 {
                     model: Bid,
                     as: 'bids',
+                    separate: true,
+                    order: [['bidAmount', 'DESC']],
+                    limit: 1,
                     include: [{ model: User, as: 'bidder', attributes: ['userName'] }]
                 }
-            ]
+            ],
+            distinct: true
         });
+
+        result.rows = result.rows.map(auction => {
+            const item = auction.toJSON();
+            item.highestBid = item.bids && item.bids.length > 0 ? item.bids[0] : null;
+            return item;
+        });
+
+        return result;
     }
 
     async findAuctionAndVerifyOwner(id, userId) {
-        const auction = await auctionRepository.findById(id,  {
+        const auction = await auctionRepository.findByPk(id,  {
             include: [
                 {
                     model: Item,

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/libs/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -12,10 +12,10 @@ import { Input } from "@/components/ui/input"
 import { Link } from "react-router"
 import { useAuthFormLogic } from "../hooks/useAuthFormLogic"
 
-export function LoginForm({className,...props}: React.ComponentProps<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const { login } = useAuthFormLogic();
   const { register, handleSubmit } = login.form;
-  
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
@@ -39,7 +39,7 @@ export function LoginForm({className,...props}: React.ComponentProps<"div">) {
                 />
               </Field>
               {login.errors.email && <p className="text-destructive text-sm">{login.errors.email.message}</p>}
-              
+
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -53,17 +53,17 @@ export function LoginForm({className,...props}: React.ComponentProps<"div">) {
                 <Input id="password" type="password" required {...register("password")} />
               </Field>
               {login.errors.password && <p className="text-destructive text-sm">{login.errors.password.message}</p>}
-              
+
               <Field>
                 <Button type="submit" disabled={login.isSubmitting}>
                   {login.isSubmitting ? "Logging in..." : "Login"}
                 </Button>
               </Field>
-              
+
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card text-xs">
                 Or continue with
               </FieldSeparator>
-              
+
               <div className="flex justify-center">
                 <Button variant="outline" type="button" className="w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 mr-2">
@@ -78,8 +78,8 @@ export function LoginForm({className,...props}: React.ComponentProps<"div">) {
 
               <FieldDescription className="text-center mt-4">
                 Don&apos;t have an account?{" "}
-                <Link 
-                  to="/signup" 
+                <Link
+                  to="/signup"
                   className="underline underline-offset-4 hover:text-primary transition-colors"
                 >
                   Sign Up
@@ -89,7 +89,7 @@ export function LoginForm({className,...props}: React.ComponentProps<"div">) {
           </form>
           <div className="relative hidden bg-muted md:block">
             <img
-              src="https://images.unsplash.com/photo-1432821596592-e2c18b78144f?q=80&w=1000&auto=format&fit=crop" 
+              src="https://images.unsplash.com/photo-1432821596592-e2c18b78144f?q=80&w=1000&auto=format&fit=crop"
               alt="Login Background"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4]"
             />

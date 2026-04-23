@@ -1,8 +1,10 @@
-import api from "@/lib/axios";
+import api from "@/libs/axios";
 import { useAuthStore } from "@/features/auth/stores/authStore";
+import type { PaginatedResponse } from "@/types/pagination";
+import type { Auction } from "../types/auction";
 
 export const auctionService = {
-    fetchAuctions: async (params?: Record<string, string | number | boolean>) => {
+    fetchAuctions: async (params?: Record<string, string | number | boolean | undefined>): Promise<PaginatedResponse<Auction>> => {
         const response = await api.get('/auctions', { params });
         return response.data;
     },
@@ -12,9 +14,9 @@ export const auctionService = {
         return response.data;
     },
 
-    fetchAuctionsByOwnerId: async (userId?: string | number) => {
+    fetchAuctionsByOwnerId: async (userId?: string | number, params?: Record<string, string | number | boolean | undefined>): Promise<PaginatedResponse<Auction>> => {
         const idToFetch = userId || useAuthStore.getState().user?.id;
-        const response = await api.get(`/auctions/user/${idToFetch}`);
+        const response = await api.get(`/auctions/user/${idToFetch}`, { params, withCredentials: true });
         return response.data;
     },
 

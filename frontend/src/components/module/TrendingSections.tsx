@@ -6,7 +6,7 @@ import type { Auction } from '@/features/auction/types/auction';
 
 // module/TrendingSections.tsx
 export function TrendingSections() {
-  const { endingSoonAuctions, newlyListedAuctions, loading } = useAuctionStore();
+  const { endingSoonAuctions, newlyListedAuctions, endedAuctions, loading } = useAuctionStore();
 
   if (loading && newlyListedAuctions.length === 0) {
     return <div className="py-10 text-center">Loading trends...</div>;
@@ -68,6 +68,35 @@ export function TrendingSections() {
           </div>
         </div>
       </section>
+
+      {/* Ended Auctions */}
+      <section className="py-10 sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center justify-center rounded-lg bg-blue-100 p-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Ended Auctions</h2>
+              <p className="text-sm text-muted-foreground">Auctions that have ended</p>
+            </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {endedAuctions.length > 0 ? (
+              endedAuctions.map((auction: Auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))
+            ) : (
+              // Fallback nếu không có hàng mới, hiện mảng auctions gốc
+              useAuctionStore.getState().auctions.slice(0, 4).map((auction: Auction) => (
+                <AuctionCard key={auction.id} auction={auction} />
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+      
     </div>
   )
 }

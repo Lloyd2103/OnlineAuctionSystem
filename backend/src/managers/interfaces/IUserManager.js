@@ -14,4 +14,9 @@ export class IUserManager {
     async submitUserRating(targetUserId, ratingValue) {
         throw new Error('Not implemented');
     }
+
+    async getUserRating(userId) {
+        throw new Error('Not implemented');
+    }
+
 }

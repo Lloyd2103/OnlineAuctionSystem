@@ -17,9 +17,9 @@ interface TransactionsTabProps {
         setSearch: (search: string) => void;
         page: number;
         setPage: (page: number) => void;
-        pageCount: number;
+        totalPages: number;
+        totalItems: number;
     };
-    totalResults: number;
     onReset: () => void;
 }
 
@@ -27,7 +27,6 @@ export function TransactionsTab({
     transactions, 
     loading, 
     filter, 
-    totalResults,
     onReset
 }: TransactionsTabProps) {
     return (
@@ -70,9 +69,9 @@ export function TransactionsTab({
                 transactions={transactions} 
                 loading={loading}
                 page={filter.page}
-                pageCount={filter.pageCount}
+                totalPages={filter.totalPages}
                 onPageChange={filter.setPage}
-                totalResults={totalResults}
+                totalItems={filter.totalItems}
             />
         </div>
     );

@@ -1,0 +1,38 @@
+@startuml
+title Activity Diagram: Sign In
+skinparam style strictuml
+
+|User|
+start
+:Click "Login" Button;
+:Enter Username & Password;
+:Submit Form;
+
+|System|
+:Validate Input Format;
+if (Is Format Valid?) then (No)
+    :Show Error "Invalid Format";
+    |User|
+    :Re-enter Information;
+    stop
+else (Yes)
+    |System|
+    :Hash Password;
+    :Query Database for Credentials;
+    
+    if (Credentials Match?) then (No)
+        :Show Error "Wrong User/Pass";
+        stop
+    else (Yes)
+        :Check Account Status;
+        if (Is Active?) then (No)
+            :Show Error "Account Locked";
+            stop
+        else (Yes)
+            :Generate Session/JWT;
+            :Redirect to Homepage;
+            stop
+        endif
+    endif
+endif
+@enduml

@@ -1,0 +1,59 @@
+@startuml
+title Activity Diagram: Manage Wallet
+skinparam style strictuml
+skinparam linetype ortho
+
+|User|
+|System|
+
+|User|
+start
+:Access Wallet;
+:View Wallet Balance;
+
+switch (Choose Action)
+case ( Deposit )
+    :Enter Amount;
+    -[#blue]->
+    |System|
+    :Process Deposit;
+    -[#blue]->
+    :Update Wallet Balance;
+    -[#blue]->
+    |User|
+    :View Updated Balance;
+    -[#blue]->
+    stop
+
+case ( Withdraw )
+    :Enter Amount;
+    |System|
+    :Check Available Balance;
+    if (Sufficient?) then (Yes)
+        :Process Withdrawal;
+        :Update Wallet Balance;
+        |User|
+        :View Updated Balance;
+    else (No)
+        |System|
+        :Reject Withdrawal;
+        :Notify Insufficient Balance;
+        |User|
+    endif
+    stop
+
+case ( View History )
+    :Click Button;
+    -[#red]->
+    |System|
+    :Retrieve Wallet History;
+    -[#red]->
+    |User|
+    :View Transaction List;
+    -[#red]->
+    stop
+
+case ( Exit )
+    stop
+endswitch
+@enduml

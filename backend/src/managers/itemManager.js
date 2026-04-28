@@ -1,7 +1,7 @@
 import itemService from '../services/itemService.js';
-import { ItemManagerInterface } from './interfaces/ItemManagerInterface.js';
+import { IItemManager } from './interfaces/IItemManager.js';
 
-class ItemManager extends ItemManagerInterface {
+class ItemManager extends IItemManager {
     async createItem(userId, itemData) {
         const item = await itemService.createItem(userId, itemData);
         return item;

@@ -6,4 +6,4 @@ export * from './components/ItemPicker';
 export * from './hooks/useLiveAuctionLogic';
 export * from './hooks/useAuctionManagementLogic';
 export * from './api/auctionService';
-export * from './types';
+export * from './types/auction';

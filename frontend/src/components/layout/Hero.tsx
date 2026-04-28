@@ -38,7 +38,7 @@ export function Hero() {
   // 2. Nếu không có LIVE, lấy cái đầu tiên của UPCOMING (đã được store lọc và sort theo sắp bắt đầu)
   // 3. Cuối cùng fallback về cái đầu tiên trong list auctions bất kỳ
   const featuredAuction = liveAuctions[0] || upcomingAuctions[0] || auctions[0] || null;
-
+  
   // Countdown đến thời điểm kết thúc (nếu live) hoặc mục tiêu khác tùy ý
   const timeLeft = useCountdown(featuredAuction?.endTime ?? new Date());
 

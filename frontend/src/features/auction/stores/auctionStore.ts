@@ -120,11 +120,20 @@ export const useAuctionStore = create<AuctionState & {
             const endedAuctions = allAuctions.filter((a: Auction) => new Date(a.endTime).getTime() < now)
                 .sort((a: Auction, b: Auction) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime());
             
-            const liveAuctions = allAuctions.filter((a: Auction) => {
-                const start = new Date(a.startTime).getTime();
-                const end = new Date(a.endTime).getTime();
-                return start < now && end > now;
-            }).sort((a: Auction, b: Auction) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime());
+            const liveAuctions = allAuctions
+                .filter((a: Auction) => {
+                    const start = new Date(a.startTime).getTime();
+                    const end = new Date(a.endTime).getTime();
+                    
+                    return (
+                    a.auctionStatus === 'ACTIVE' && 
+                    start < now && 
+                    end > now
+                    );
+                })
+                .sort((a: Auction, b: Auction) => 
+                    new Date(a.endTime).getTime() - new Date(b.endTime).getTime()
+                );
             
             const upcomingAuctions = allAuctions.filter((a: Auction) => new Date(a.startTime).getTime() > now)
                 .sort((a: Auction, b: Auction) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());

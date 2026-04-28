@@ -1,0 +1,101 @@
+@startuml
+title Activity Diagram: Manage Transaction
+skinparam style strictuml
+
+|User|
+start
+:Access "Transaction Management";
+:Select Transaction Type;
+
+if (Transaction Type?) then (Deposit)
+    :Enter Amount;
+    :Select Payment Method;
+
+    |System|
+    :Create Transaction (Type: DEPOSIT);
+    :Redirect to Payment Gateway;
+
+    |Payment Gateway|
+    :Process Payment;
+    if (Payment Success?) then (No)
+        |System|
+        :Mark Transaction FAILED;
+        :Notify User;
+        stop
+    else (Yes)
+        |System|
+        :Update Account Balance (+ Amount);
+        |Database|
+        :Log Transaction (DEPOSIT);
+        |User|
+        :Show "Transaction Successful";
+        stop
+    endif
+
+elseif (Withdraw)
+    :Enter Amount;
+    :Enter Bank Information;
+
+    |System|
+    :Check Balance >= Amount?;
+    if (Insufficient?) then (Yes)
+        :Reject Transaction;
+        :Notify "Insufficient Balance";
+        stop
+    else (No)
+        |Database|
+        :Create Transaction (WITHDRAW - PENDING);
+        |Admin|
+        :Review Withdrawal Request;
+
+        if (Approved?) then (Yes)
+            |System|
+            :Transfer Money;
+            :Update Account Balance (- Amount);
+            |Database|
+            :Log Transaction (WITHDRAW - COMPLETED);
+            stop
+        else (No)
+            |System|
+            :Cancel Transaction;
+            :Notify Rejection;
+            stop
+        endif
+    endif
+
+elseif (Payment)
+    :Select Order;
+    :Confirm Payment;
+
+    |System|
+    :Validate Order;
+    :Create Transaction (PAYMENT);
+
+    |Database|
+    :Update Order Status (PAID);
+    :Log Transaction (PAYMENT);
+
+    |User|
+    :Show Payment Confirmation;
+    stop
+
+else (Refund)
+    :Select Transaction / Order;
+
+    |System|
+    :Validate Refund Policy;
+    if (Eligible?) then (Yes)
+        :Create Transaction (REFUND);
+        |Database|
+        :Update Balance (+ Refund Amount);
+        :Log Transaction (REFUND);
+        |User|
+        :Show "Refund Successful";
+        stop
+    else (No)
+        :Reject Refund Request;
+        :Notify User;
+        stop
+    endif
+endif
+@enduml

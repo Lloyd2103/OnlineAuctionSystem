@@ -1,0 +1,35 @@
+@startuml
+title Activity Diagram: Create Auction (Seller)
+skinparam style strictuml
+
+|Seller|
+start
+:Select "Create Auction";
+:Fill Item Info (Name, Desc, Image);
+:Set Auction Config (Start Price, Step, End Time);
+:Confirm Listing;
+
+|System|
+:Validate Auction Data;
+if (Data Valid?) then (No)
+    :Return Validation Errors;
+    stop
+else (Yes)
+    :Calculate Listing Fee/Deposit;
+    :Check Seller's Wallet Balance;
+    
+    if (Balance >= Fee?) then (No)
+        :Show "Insufficient Balance";
+        :Redirect to Deposit Page;
+        stop
+    else (Yes)
+        :Lock/Deduct Amount from Wallet;
+        :Create Transaction Record (Type: HOLD);
+        :Save Auction to DB (Status: PENDING);
+        :Send Notification to Admin (if Approval needed);
+        |Seller|
+        :Show "Auction Created Successfully";
+        stop
+    endif
+endif
+@enduml

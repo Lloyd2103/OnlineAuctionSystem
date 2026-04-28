@@ -1,0 +1,49 @@
+@startuml
+title Activity Diagram: Manage Items (Add/Update/Delete)
+skinparam style strictuml
+
+|Seller (Người bán)|
+start
+:Access "My Inventory";
+:View Item List;
+
+if (Choose Action?) then (Add New Item)
+    :Click "Add Item";
+    :Fill Details (Name, Category, Desc);
+    :Upload Images;
+    :Submit;
+    
+    |System|
+    :Validate Content;
+    |Database|
+    :Saved Item;
+    |System|
+    :Notify "Item Added";
+    stop
+
+else (Edit/Delete)
+    :Select Existing Item;
+    
+    |System|
+    :Check Item Status;
+    if (Is in Active Auction?) then (Yes)
+        :Show Error "Cannot modify item \nin active auction";
+        stop
+    else (No)
+        |Seller (Người bán)|
+        if (Action type?) then (Update)
+            :Edit Information;
+            :Save Changes;
+            |Database|
+            :Update Item Record;
+            stop
+        else (Delete)
+            :Click "Delete";
+            :Confirm Dialog;
+            |Database|
+            :Deleted Item ;
+            stop
+        endif
+    endif
+endif
+@enduml

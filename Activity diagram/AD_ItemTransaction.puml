@@ -1,0 +1,41 @@
+@startuml
+title Activity Diagram: Item Transaction
+skinparam style strictuml
+
+|Winner|
+|System|
+
+start
+:Detect Auction Ended;
+if (Has Winner?) then (No)
+    :Update Status = UNSOLD;
+    :Notify Seller;
+    stop
+else (Yes)
+    :Update Status = Waiting Payment;
+    :Create Order Record;
+    :Notify Winner & Seller;
+    
+    |Winner|
+    :Receive Notification;
+    :Go to Checkout Page;
+    :Select Payment Method;
+    :Confirm Payment;
+    
+    |System|
+    :Process Payment Request;
+    
+    if (Payment Success?) then (No)
+        :Show Error;
+        :Allow Retry;
+        detach
+    else (Yes)
+        |System|
+        :Update Order Status = PAID;
+        :Update Transaction History;
+        :Hold Money in System Wallet (Escrow);
+        :Notify Seller to Ship Item;
+        stop
+    endif
+endif
+@enduml

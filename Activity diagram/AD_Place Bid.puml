@@ -1,0 +1,64 @@
+@startuml
+title Activity Diagram: Place Bid & Anti-Sniping
+skinparam style strictuml
+
+|Bidder|
+start
+:View Auction Details;
+:Input Bid Amount;
+:Click "Place Bid";
+
+|System|
+:Validate Auction Status (Active?);
+:Validate Time (Not Expired?);
+
+if (Valid Session?) then (No)
+    :Show Error;
+    stop
+else (Yes)
+    |System|
+    :Check Wallet (Balance >= Bid Amount?);
+    if (Enough Money?) then (No)
+        :Show "Please Deposit Money";
+        stop
+    else (Yes)
+        
+        :Lock Auction Row (Pessimistic Lock);
+        :Get Latest Current_Price;
+        
+        |System|
+        if (Bid Amount >= Current_Price + Step?) then (No)
+            :Show "Price too low";
+            
+            :Unlock Row;
+            stop
+        else (Yes)
+            :Create Bid Record;
+            :Update Auction (Current_Price, Winner_ID);
+            
+            |System|
+            :Check Anti-Sniping Condition;
+            if (Remaining Time < 30s?) then (Yes)
+                :Extend End_Time by 2 mins;
+            else (No)
+                :Keep End_Time;
+            endif
+            
+            
+            :Commit Transaction & Unlock Row;
+            
+            fork
+                
+                :Notify Previous Winner (Outbid);
+            fork again
+                
+                :Broadcast New Price to All Users;
+            end fork
+            
+            |Bidder|
+            :Show "Bid Placed Successfully";
+            stop
+        endif
+    endif
+endif
+@enduml

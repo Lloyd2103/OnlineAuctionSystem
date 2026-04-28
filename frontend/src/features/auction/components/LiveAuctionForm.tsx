@@ -40,6 +40,19 @@ export function LiveAuction() {
 
     if (!auction) return null;
 
+    const getAttributes = (attributes: string | undefined) => {
+        if (!attributes) return null;
+        try {
+            return typeof attributes === 'string'
+                ? JSON.parse(attributes)
+                : attributes;
+        } catch (e) {
+            console.error("Failed to parse attributes", e);
+            return null;
+        }
+    };
+    const attributes = getAttributes(auction.item?.attributes);
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-50/50 min-h-screen">
             <div className="grid lg:grid-cols-3 gap-8">
@@ -101,7 +114,7 @@ export function LiveAuction() {
                                     <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-bold">Tình trạng</div>
                                     <div className="font-bold text-gray-900 flex items-center gap-2 text-sm">
                                         <Package className="w-4 h-4 text-primary" />
-                                        {auction.item?.itemStatus}
+                                        {auction.item?.itemStatus || 'Mới'}
                                     </div>
                                 </div>
                                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
@@ -111,14 +124,28 @@ export function LiveAuction() {
                                         {bids.length}
                                     </div>
                                 </div>
-                                <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100 md:col-span-2">
-                                    <div className="text-xs text-yellow-700 mb-1 uppercase tracking-wider font-bold">Tiền cọc yêu cầu</div>
-                                    <div className="font-extrabold text-yellow-900 flex items-center gap-2">
-                                        <Shield className="w-5 h-5 text-yellow-600" />
+                                <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100">
+                                    <div className="text-xs text-yellow-700 mb-1 uppercase tracking-wider font-bold">Tiền cọc</div>
+                                    <div className="font-extrabold text-yellow-900 flex items-center gap-2 text-sm">
+                                        <Shield className="w-4 h-4 text-yellow-600" />
                                         {formatCurrency(auction.mandatoryDeposit || 500)}
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="mt-6 p-6 bg-white rounded-2xl border border-gray-200">
+                            <h3 className="text-lg font-bold mb-6">Thông số chi tiết</h3>
+                            <table className="w-full text-left border-collapse">
+                                <tbody>
+                                {Object.entries(attributes).map(([key, value], index) => (
+                                    <tr key={key} className={index % 2 === 0 ? 'bg-gray-50/50' : ''}>
+                                    <td className="py-3 px-4 text-xs font-bold text-gray-500 uppercase w-1/3">{key}</td>
+                                    <td className="py-3 px-4 text-sm font-semibold text-gray-800">{String(value)}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -304,7 +331,7 @@ export function LiveAuction() {
                                         <BidItem
                                             key={bid.id}
                                             bid={bid}
-                                            isCurrentUser={Boolean(user && bid.bidderId === user.id.toString())}
+                                            isCurrentUser={Boolean(user && String(bid.bidderId) === String(user.id))}
                                         />
                                     ))
                                 ) : (

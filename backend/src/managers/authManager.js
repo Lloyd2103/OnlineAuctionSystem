@@ -1,8 +1,8 @@
 import authService from '../services/authService.js';
 import userService from '../services/userService.js';
-import { AuthManagerInterface } from './interfaces/AuthManagerInterface.js';
+import { IAuthManager } from './interfaces/IAuthManager.js';
 
-class AuthManager extends AuthManagerInterface {
+class AuthManager extends IAuthManager {
     async signUp(data) {
         const { userName, userEmail, userPhone, userAddress, password } = data;
         if (!userName || !userEmail || !password) {

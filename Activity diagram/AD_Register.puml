@@ -1,0 +1,45 @@
+@startuml
+title Activity Diagram: Sign Up
+skinparam style strictuml
+
+|Guest|
+start
+:Click "Register";
+:Input Information \n(Fullname, Email, Phone, Password);
+
+|System|
+:Validate Data Format;
+if (Valid Format?) then (No)
+    :Show Error "Invalid Input";
+    stop
+else (Yes)
+    :Check Duplicate Email/Phone;
+    
+    |System|
+    if (Already Exists?) then (Yes)
+        :Show Error "Email/Phone already used";
+        stop
+    else (No)
+        :Generate OTP Code;
+        :Send OTP via Email;
+        
+        |Guest|
+        repeat
+            :Receive Email;
+            :Enter OTP Code;
+            
+            |System|
+            :Verify OTP;
+        repeat while (OTP Match?) is (No)
+        -> Yes;
+        
+
+        :Create New Account \n(Status: Active);
+        
+        |System|
+        :Show "Registration Successful";
+        :Redirect to Login Page;
+        stop
+    endif
+endif
+@enduml

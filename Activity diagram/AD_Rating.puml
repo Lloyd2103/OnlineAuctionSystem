@@ -1,0 +1,34 @@
+@startuml
+title Activity Diagram: Rating & Review
+skinparam style strictuml
+
+|User (Buyer/Seller)|
+start
+:Go to "Transaction History";
+:Select Completed Order;
+:Click "Rate User";
+
+|System|
+:Check if Rated before?;
+if (Already Rated?) then (Yes)
+    :Show "You have already rated";
+    stop
+else (No)
+    |User (Buyer/Seller)|
+    :Select Star Rating (1-5);
+    :Write Comment;
+    :Submit Review;
+    
+    |System|
+    :Validate Content (No bad words);
+    
+    |System|
+    :Save Review;
+    :Recalculate Average Rating \nfor Target User;
+    :Update User Trust Score;
+    
+    |System|
+    :Notify Target User;
+    stop
+endif
+@enduml

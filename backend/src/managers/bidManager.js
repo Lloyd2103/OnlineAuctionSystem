@@ -1,8 +1,8 @@
 import bidService from '../services/bidService.js';
 import { PlaceBidCommand } from '../domains/auction/commands/PlaceBidCommand.js';
-import { BidManagerInterface } from './interfaces/BidManagerInterface.js';
+import { IBidManager } from './interfaces/IBidManager.js';
 
-class BidManager extends BidManagerInterface {
+class BidManager extends IBidManager {
     async getAuctionStats(auctionId) {
         return await bidService.getStats(auctionId);
     }

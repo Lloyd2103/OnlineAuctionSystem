@@ -1,0 +1,51 @@
+@startuml
+title Activity Diagram: Manage Account
+skinparam style strictuml
+
+|User|
+start
+:Access "Account Settings";
+
+if (Select Tab?) then (Profile Info)
+    :Edit Fullname/Address/Avatar;
+    :Click "Save Changes";
+    
+    |System|
+    :Validate Input;
+    |System|
+    :Update User Record;
+    |System|
+    :Show "Profile Updated";
+    stop
+
+else (Change Password)
+    :Enter Old Password;
+    :Enter New Password;
+    :Confirm New Password;
+    :Click "Update Password";
+    
+    |System|
+    :Hash Old Password Input;
+    |System|
+    :Compare with Stored Password;
+    
+    |System|
+    if (Match?) then (No)
+        :Show "Incorrect Old Password";
+        stop
+    else (Yes)
+        :Validate New Password Strength;
+        if (Strong Enough?) then (Yes)
+            |System|
+            :Update Password Hash;
+            |System|
+            :Revoke All Other Sessions \n(Security Best Practice);
+            :Show "Password Changed";
+            stop
+        else (No)
+            :Show "Password too weak";
+            stop
+        endif
+    endif
+endif
+@enduml

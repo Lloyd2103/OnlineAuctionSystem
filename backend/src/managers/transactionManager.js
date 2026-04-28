@@ -5,9 +5,9 @@ import { WalletWithdrawProcessor } from '../domains/transaction/processors/Walle
 import { WalletTransferProcessor } from '../domains/transaction/processors/WalletTransferProcessor.js';
 import userService from '../services/userService.js';
 import transactionService from '../services/transactionService.js';
-import { TransactionManagerInterface } from './interfaces/TransactionManagerInterface.js';
+import { ITransactionManager } from './interfaces/ITransactionManager.js';
 
-class TransactionManager extends TransactionManagerInterface {
+class TransactionManager extends ITransactionManager {
     // === CÁC GIAO DỊCH DÙNG TEMPLATE PATTERN ===
 
     async payDeposit(bidderId, auctionId) {

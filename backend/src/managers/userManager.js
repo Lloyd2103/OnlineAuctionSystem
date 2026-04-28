@@ -1,7 +1,7 @@
 import userService from '../services/userService.js';
-import { UserManagerInterface } from './interfaces/UserManagerInterface.js';
+import { IUserManager } from './interfaces/IUserManager.js';
 
-class UserManager extends UserManagerInterface {
+class UserManager extends IUserManager {
     async getUserProfile(userId) {
         return await userService.findUserById(userId);
     }

@@ -18,6 +18,20 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
     navigate(`/auction/${auction.id}`)
   }
 
+  const getAttributes = () => {
+    if (!auction.item?.attributes) return null;
+    try {
+      return typeof auction.item.attributes === 'string' 
+        ? JSON.parse(auction.item.attributes) 
+        : auction.item.attributes;
+    } catch (e) {
+      console.error("Failed to parse attributes", e);
+      return null;
+    }
+  };
+
+  const attributes = getAttributes();
+
   return (
     <div className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
       {/* Image Section */}
@@ -40,30 +54,43 @@ export function AuctionCard({ auction, urgent = false }: AuctionCardProps) {
           </div>
         )}
 
-        {/* Bid count (nếu bạn chưa làm logic đếm bid, có thể để tạm 0 hoặc ẩn đi) */}
+        {/* Bid count */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-foreground/70 px-2 py-1 backdrop-blur-sm">
           <Users className="h-3 w-3 text-primary-foreground" />
-          <span className="text-[10px] font-medium text-primary-foreground">{auction.itemId}</span>
+          <span className="text-[10px] font-medium text-primary-foreground">
+            {auction.bids?.length ?? 0}
+          </span>
         </div>
+
+        
+        
       </div>
 
       {/* Content Section */}
       <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            {/* 5. SỬA: Lấy category từ auction.item */}
-            <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
-              {auction.item?.category || 'General'}
-            </p>
-            <h3
-              className="mt-1 text-sm font-bold text-card-foreground truncate"
-              style={{ fontFamily: 'var(--font-heading)' }}
-              title={auction.title}
-            >
-              {auction.title}
-            </h3>
-          </div>
+        {/* Category & Title */}
+        <div className="mb-3">
+          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">
+            {auction.item?.category || 'General'}
+          </span>
+          <h3 className="mt-1 line-clamp-1 text-base font-bold text-foreground group-hover:text-primary transition-colors">
+            {auction.title}
+          </h3>
         </div>
+
+        {/* Attributes Section */}
+        {attributes && Object.keys(attributes).length > 0 && (
+          <div className="flex flex-wrap gap-x-2 gap-y-1 mb-3">
+            {Object.entries(attributes).map(([key, value]) => (
+              <span 
+                key={key} 
+                className="text-[9px] font-medium text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded border border-border/50"
+              >
+                <span className="capitalize">{key}</span>: <span className="font-semibold text-foreground">{String(value)}</span>
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Timer Section */}
         <div className={`mt-3 flex items-center gap-1.5 ${(isEnding || urgent) ? 'text-red-500' : 'text-muted-foreground'}`}>

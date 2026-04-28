@@ -41,18 +41,18 @@ app.use(cors({
 app.use(compression());
 
 // Performance Logger Middleware
-app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-        const duration = Date.now() - start;
-        if (duration > 500) {
-            console.warn(`[Slow Request] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
-        } else {
-            console.log(`[Perf] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
-        }
-    });
-    next();
-});
+// app.use((req, res, next) => {
+//     const start = Date.now();
+//     res.on('finish', () => {
+//         const duration = Date.now() - start;
+//         if (duration > 500) {
+//             console.warn(`[Slow Request] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+//         } else {
+//             console.log(`[Perf] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+//         }
+//     });
+//     next();
+// });
 
 
 // Public routes
